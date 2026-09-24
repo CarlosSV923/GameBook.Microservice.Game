@@ -8,8 +8,9 @@ import { ApiExceptionFilter } from '../../../../src/api/http/api-exception.filte
 
 function createHost(requestId = 'request-from-client') {
   const json = vi.fn();
+  const status = vi.fn().mockReturnValue({ json });
   const response = {
-    status: vi.fn().mockReturnValue({ json }),
+    status,
   } as unknown as Response;
   const request = {
     get: vi.fn().mockReturnValue(requestId),
@@ -22,12 +23,12 @@ function createHost(requestId = 'request-from-client') {
     }),
   } as unknown as ArgumentsHost;
 
-  return { host, response, json };
+  return { host, response, json, status };
 }
 
 describe('ApiExceptionFilter', () => {
   it('returns stable validation errors with safe details', () => {
-    const { host, response, json } = createHost();
+    const { host, json, status } = createHost();
 
     new ApiExceptionFilter().catch(
       new BadRequestException({
@@ -42,7 +43,7 @@ describe('ApiExceptionFilter', () => {
       host,
     );
 
-    expect(response.status).toHaveBeenCalledWith(400);
+    expect(status).toHaveBeenCalledWith(400);
     expect(json).toHaveBeenCalledWith({
       code: 'VALIDATION_ERROR',
       message: 'Request validation failed.',

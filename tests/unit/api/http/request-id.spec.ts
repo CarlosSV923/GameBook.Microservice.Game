@@ -22,11 +22,12 @@ describe('request id', () => {
   });
 
   it('stores and returns the resolved id at the HTTP boundary', () => {
+    const setHeader = vi.fn();
     const request = {
       get: vi.fn().mockReturnValue('client-request-01'),
     } as unknown as Request;
     const response = {
-      setHeader: vi.fn(),
+      setHeader,
     } as unknown as Response;
     const next = vi.fn();
 
@@ -35,7 +36,7 @@ describe('request id', () => {
     expect((request as Request & { requestId: string }).requestId).toBe(
       'client-request-01',
     );
-    expect(response.setHeader).toHaveBeenCalledWith(
+    expect(setHeader).toHaveBeenCalledWith(
       REQUEST_ID_HEADER,
       'client-request-01',
     );

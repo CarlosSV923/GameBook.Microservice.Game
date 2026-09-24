@@ -9,7 +9,7 @@
   "packageManager": "pnpm@12.4.1",
   "scripts": {
     "build": "nest build",
-    "db:generate": "prisma generate --config ./src/infrastructure/persistence/prisma/prisma.config.ts",
+    "db:generate": "prisma generate --schema ./src/infrastructure/persistence/prisma/schema.prisma",
     "db:migrate:deploy": "prisma migrate deploy --config ./src/infrastructure/persistence/prisma/prisma.config.ts",
     "db:validate": "prisma validate --config ./src/infrastructure/persistence/prisma/prisma.config.ts",
     "deploy": "nest deploy",

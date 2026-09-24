@@ -40,6 +40,8 @@ jobs:
           cache-dependency-path: pnpm-lock.yaml
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+      - name: Generate Prisma client
+        run: pnpm run db:generate
       - name: Check formatting
         run: pnpm run format:check
       - name: Run lint
