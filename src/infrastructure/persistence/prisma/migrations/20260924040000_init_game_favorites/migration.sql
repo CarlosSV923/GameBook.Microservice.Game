@@ -1,6 +1,3 @@
--- CreateSchema
-CREATE SCHEMA IF NOT EXISTS "game";
-
 -- CreateTable
 CREATE TABLE "game"."Favorite" (
     "userId" UUID NOT NULL,

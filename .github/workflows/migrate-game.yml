@@ -31,6 +31,7 @@ jobs:
     environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'develop' }}
     env:
       GAME_DATABASE_DIRECT_URL: ${{ secrets.GAME_DATABASE_DIRECT_URL }}
+      GAME_MIGRATION_NAME: 20260924040000_init_game_favorites
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -76,6 +77,43 @@ jobs:
 
       - name: Validate Prisma schema
         run: pnpm db:validate
+
+      - name: Recover failed Game migration
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          failed_migration="$(
+            node --input-type=module <<'NODE'
+          import pg from 'pg';
+
+          const pool = new pg.Pool({
+            connectionString: process.env.GAME_DATABASE_DIRECT_URL,
+          });
+
+          try {
+            const result = await pool.query(
+              `SELECT 1
+               FROM public."_prisma_migrations"
+               WHERE migration_name = $1
+                 AND finished_at IS NULL
+                 AND rolled_back_at IS NULL
+               LIMIT 1`,
+              [process.env.GAME_MIGRATION_NAME],
+            );
+
+            process.stdout.write(result.rowCount === 1 ? 'true' : 'false');
+          } finally {
+            await pool.end();
+          }
+          NODE
+          )"
+
+          if [[ "$failed_migration" == "true" ]]; then
+            pnpm exec prisma migrate resolve \
+              --rolled-back "$GAME_MIGRATION_NAME" \
+              --config ./src/infrastructure/persistence/prisma/prisma.config.ts
+          fi
 
       - name: Apply Game migrations
         run: pnpm db:migrate:deploy
