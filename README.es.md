@@ -16,7 +16,7 @@ Game es propietario de la persistencia de favoritos, su creación y eliminación
 - `src/infrastructure/` — persistencia Prisma, verificación JWT, cliente HTTP de AuthUser, configuración de runtime y adaptadores.
 - `src/main.ts` — arranque de la aplicación, configuración HTTP y documentación.
 
-El acceso runtime a la base de datos usa `GAME_DATABASE_URL`. Las migraciones Prisma usan `GAME_DATABASE_DIRECT_URL` por separado y únicamente desde comandos de migración controlados o Actions; las credenciales de migración no son credenciales runtime ni forman parte de Docker Compose.
+El acceso runtime a la base de datos usa `GAME_DATABASE_URL`. Las migraciones Prisma usan `GAME_DATABASE_DIRECT_URL` por separado y únicamente desde comandos de migración controlados o Actions; las credenciales de migración no son credenciales runtime.
 
 ## Configuración local
 
@@ -47,9 +47,9 @@ CORS_ALLOWED_ORIGINS=
 PORT=
 ```
 
-`AUTHUSER_URL` es la URL base de AuthUser sin el sufijo `/v1`. Cuando ambos servicios se ejecutan en el host, apunta al endpoint local de AuthUser; dentro de Compose se resuelve mediante el nombre de servicio `authuser`. `JWT_PUBLIC_KEY`, `JWT_ISSUER` y `JWT_AUDIENCE` deben coincidir con la configuración de firma de AuthUser. Los valores PEM pueden usar escapes literales `\n`. Nunca confirmes archivos de entorno, claves ni credenciales de base de datos.
+`AUTHUSER_URL` es la URL base de AuthUser sin el sufijo `/v1`. Cuando Game se ejecuta de forma individual, apunta al endpoint local de AuthUser. `JWT_PUBLIC_KEY`, `JWT_ISSUER` y `JWT_AUDIENCE` deben coincidir con la configuración de firma de AuthUser. Los valores PEM pueden usar escapes literales `\n`. Nunca confirmes archivos de entorno, claves ni credenciales de base de datos.
 
-Inicia el servicio:
+Inicia Game de forma individual:
 
 ```bash
 pnpm start:dev
