@@ -15,6 +15,15 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiOperation,
+  ApiParam,
+  ApiQuery,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import type { Request } from 'express';
 import {
   Favorite,
@@ -44,9 +53,17 @@ import {
   SuggestFavoritesQueryDto,
   UpdateFavoriteSnapshotDto,
 } from './favorite.dto.js';
+import {
+  ErrorResponseModel,
+  FavoriteModel,
+  FavoritePageModel,
+  SuggestionPageModel,
+} from '../openapi/api-models.js';
 
 @Controller('v1/favorites')
 @UseGuards(JwtAuthGuard)
+@ApiTags('Favorites')
+@ApiBearerAuth('BearerAuth')
 export class FavoritesController {
   constructor(
     private readonly createFavorite: CreateFavoriteService,
@@ -57,6 +74,40 @@ export class FavoritesController {
   ) {}
 
   @Get('suggestions')
+  @ApiTags('Suggestions')
+  @ApiOperation({
+    operationId: 'suggestFavorites',
+    summary: 'Suggest own favorite names or platforms',
+    description:
+      'Searches all favorites owned by the authenticated UUID, not only the currently visible page.',
+  })
+  @ApiQuery({
+    name: 'type',
+    enum: ['name', 'platform'],
+    required: true,
+    description: 'Favorite field to search.',
+  })
+  @ApiQuery({
+    name: 'q',
+    required: true,
+    minLength: 1,
+    maxLength: 100,
+    description: 'Trimmed partial text.',
+    example: 'grand',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    minimum: 1,
+    maximum: 20,
+    example: 10,
+  })
+  @ApiResponse({ status: 200, type: SuggestionPageModel })
+  @ApiResponse({ status: 400, type: ErrorResponseModel })
+  @ApiResponse({ status: 401, type: ErrorResponseModel })
+  @ApiResponse({ status: 503, type: ErrorResponseModel })
+  @ApiResponse({ status: 500, type: ErrorResponseModel })
   async suggest(
     @Req() request: AuthenticatedRequest,
     @Query() query: SuggestFavoritesQueryDto,
@@ -76,6 +127,58 @@ export class FavoritesController {
   }
 
   @Get()
+  @ApiOperation({
+    operationId: 'listFavorites',
+    summary: 'List and filter own favorites',
+    description:
+      'Returns only favorites owned by the validated JWT subject. Name, platform and release-year filters combine with AND.',
+  })
+  @ApiQuery({ name: 'name', required: false, maxLength: 100, example: 'grand' })
+  @ApiQuery({
+    name: 'platformId',
+    required: false,
+    type: Number,
+    minimum: 1,
+    example: 6,
+  })
+  @ApiQuery({
+    name: 'yearFrom',
+    required: false,
+    type: Number,
+    minimum: 1,
+    maximum: 9999,
+    example: 2013,
+  })
+  @ApiQuery({
+    name: 'yearTo',
+    required: false,
+    type: Number,
+    minimum: 1,
+    maximum: 9999,
+    example: 2020,
+  })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    type: Number,
+    minimum: 1,
+    default: 1,
+    example: 1,
+  })
+  @ApiQuery({
+    name: 'pageSize',
+    required: false,
+    type: Number,
+    minimum: 1,
+    maximum: 1000,
+    default: 20,
+    example: 20,
+  })
+  @ApiResponse({ status: 200, type: FavoritePageModel })
+  @ApiResponse({ status: 400, type: ErrorResponseModel })
+  @ApiResponse({ status: 401, type: ErrorResponseModel })
+  @ApiResponse({ status: 503, type: ErrorResponseModel })
+  @ApiResponse({ status: 500, type: ErrorResponseModel })
   async list(
     @Req() request: AuthenticatedRequest,
     @Query() query: ListFavoritesQueryDto,
@@ -104,6 +207,19 @@ export class FavoritesController {
   }
 
   @Post()
+  @ApiOperation({
+    operationId: 'createFavorite',
+    summary: 'Save an own favorite',
+    description:
+      'Creates a favorite owned by the validated JWT subject; a client-supplied user ID is never accepted.',
+  })
+  @ApiBody({ type: CreateFavoriteDto })
+  @ApiResponse({ status: 201, type: FavoriteModel })
+  @ApiResponse({ status: 400, type: ErrorResponseModel })
+  @ApiResponse({ status: 401, type: ErrorResponseModel })
+  @ApiResponse({ status: 409, type: ErrorResponseModel })
+  @ApiResponse({ status: 503, type: ErrorResponseModel })
+  @ApiResponse({ status: 500, type: ErrorResponseModel })
   async create(
     @Req() request: AuthenticatedRequest,
     @Body() body: CreateFavoriteDto,
@@ -119,6 +235,25 @@ export class FavoritesController {
   }
 
   @Patch(':igdbId/snapshot')
+  @ApiOperation({
+    operationId: 'updateFavoriteSnapshot',
+    summary: 'Update an own favorite snapshot',
+    description:
+      'Updates only an existing favorite owned by the validated JWT subject after a successful IGDB detail request.',
+  })
+  @ApiParam({
+    name: 'igdbId',
+    schema: { type: 'integer', format: 'int32', minimum: 1 },
+    example: 3498,
+    description: 'IGDB game identifier.',
+  })
+  @ApiBody({ type: UpdateFavoriteSnapshotDto })
+  @ApiResponse({ status: 200, type: FavoriteModel })
+  @ApiResponse({ status: 400, type: ErrorResponseModel })
+  @ApiResponse({ status: 401, type: ErrorResponseModel })
+  @ApiResponse({ status: 404, type: ErrorResponseModel })
+  @ApiResponse({ status: 503, type: ErrorResponseModel })
+  @ApiResponse({ status: 500, type: ErrorResponseModel })
   async updateSnapshot(
     @Req() request: AuthenticatedRequest,
     @Param() params: FavoriteIdParamDto,
@@ -138,6 +273,26 @@ export class FavoritesController {
 
   @Delete(':igdbId')
   @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({
+    operationId: 'deleteFavorite',
+    summary: 'Delete an own favorite',
+    description:
+      'Deletes only the favorite owned by the validated JWT subject and addressed by the IGDB identifier.',
+  })
+  @ApiParam({
+    name: 'igdbId',
+    schema: { type: 'integer', format: 'int32', minimum: 1 },
+    example: 3498,
+    description: 'IGDB game identifier.',
+  })
+  @ApiResponse({
+    status: 204,
+    description: 'Favorite deleted; no response body.',
+  })
+  @ApiResponse({ status: 401, type: ErrorResponseModel })
+  @ApiResponse({ status: 404, type: ErrorResponseModel })
+  @ApiResponse({ status: 503, type: ErrorResponseModel })
+  @ApiResponse({ status: 500, type: ErrorResponseModel })
   async remove(
     @Req() request: AuthenticatedRequest,
     @Param() params: FavoriteIdParamDto,
