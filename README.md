@@ -35,7 +35,7 @@ pnpm install --frozen-lockfile
 pnpm db:generate
 ```
 
-Create a private, ignored `.env` file. The variable names are listed without values:
+Copy `.env.example` to a private, ignored `.env` file and fill only the local values. The template lists the variable names without values:
 
 ```dotenv
 GAME_DATABASE_URL=
@@ -47,7 +47,7 @@ CORS_ALLOWED_ORIGINS=
 PORT=
 ```
 
-`AUTHUSER_URL` is the AuthUser base URL without the `/v1` suffix. When Game runs individually, it points to the local AuthUser endpoint. `JWT_PUBLIC_KEY`, `JWT_ISSUER`, and `JWT_AUDIENCE` must match AuthUser's corresponding signing configuration. PEM values may use literal `\n` escapes. Never commit environment files, keys, or database credentials.
+The template also lists `GAME_DATABASE_DIRECT_URL` as a migration-only variable. Provide it privately only when running Prisma migration commands; it is not a runtime or deployment credential. `AUTHUSER_URL` is the AuthUser base URL without the `/v1` suffix. When Game runs individually, it points to the local AuthUser endpoint. `JWT_PUBLIC_KEY`, `JWT_ISSUER`, and `JWT_AUDIENCE` must match AuthUser's corresponding signing configuration. PEM values may use literal `\n` escapes. Never commit `.env` files, keys, or database credentials.
 
 Start Game individually:
 
