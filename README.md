@@ -2,45 +2,83 @@
 
 [Read this README in Spanish](README.es.md)
 
-`GameBook.Microservice.Game` is the planned favorites service for GameBook, a portfolio project for exploring video games and managing a personal collection.
+`GameBook.Microservice.Game` is the GameBook favorites service. It stores the authenticated user's favorite games and exposes the operations required by the frontend to manage that collection.
 
 ## Responsibility
 
-The service will own favorite-game persistence and the authenticated favorite operations for each user. It is planned with NestJS, Prisma, and PostgreSQL, using a DDD-oriented structure and an OpenAPI/Swagger interface. It will verify the user JWT and keep its database schema independent from AuthUser.
+Game owns favorite persistence, favorite creation and deletion, listing and filtering, suggestions, and snapshot synchronization. It validates the AuthUser-issued RS256 JWT locally, checks the session and revocation state through AuthUser, and keeps its PostgreSQL schema independent from AuthUser.
 
-## Repository status
+## Implemented architecture
 
-This repository contains the initial project foundation. Application implementation, infrastructure, and deployment are intentionally scheduled as later SDD tasks.
+- `src/api/` — favorite controllers, JWT guard, validation, CORS, request IDs, exception mapping, and Swagger/OpenAPI.
+- `src/application/` — favorite use cases, errors, ports, and dependency tokens.
+- `src/domain/` — favorite entities, platform rules, repositories, and domain errors.
+- `src/infrastructure/` — Prisma persistence, JWT verification, AuthUser HTTP client, runtime configuration, and adapters.
+- `src/main.ts` — application bootstrap, HTTP configuration, and documentation setup.
 
-## Local runtime configuration
+Runtime database access uses `GAME_DATABASE_URL`. Prisma migrations use the separate `GAME_DATABASE_DIRECT_URL` only from controlled migration commands or Actions; migration credentials are not runtime credentials.
 
-Game requires `GAME_DATABASE_URL`, `JWT_PUBLIC_KEY`, `JWT_ISSUER`, `JWT_AUDIENCE`, `AUTHUSER_URL`, and `CORS_ALLOWED_ORIGINS` in its private, ignored `.env` file. The public key must match AuthUser's local private key, and `JWT_ISSUER` and `JWT_AUDIENCE` must use the same values as AuthUser. CORS origins are exact comma-separated browser origins; wildcard values are ignored.
+## Local setup
 
-When both services run directly on the host, use:
+Prerequisites:
 
-```dotenv
-AUTHUSER_URL=http://localhost:3001
-PORT=3002
-CORS_ALLOWED_ORIGINS=http://localhost:3000
+- Node.js 24 or a compatible LTS version.
+- pnpm 12.4.1 through Corepack.
+- A local test database role, the AuthUser public key, and matching JWT issuer/audience values.
+- AuthUser running locally when exercising protected requests.
+
+Install dependencies and generate the Prisma client:
+
+```bash
+corepack enable
+pnpm install --frozen-lockfile
+pnpm db:generate
 ```
 
-`AUTHUSER_URL` is the AuthUser base URL without the `/v1` suffix. When Game runs inside Docker Compose, `localhost` points to the Game container; use the AuthUser service name on the Compose network instead, for example `AUTHUSER_URL=http://authuser:3001` when that service is named `authuser`.
+Copy `.env.example` to a private, ignored `.env` file and fill only the local values. The template lists the variable names without values:
 
-## Local service and API documentation
+```dotenv
+GAME_DATABASE_URL=
+JWT_PUBLIC_KEY=
+JWT_ISSUER=
+JWT_AUDIENCE=
+AUTHUSER_URL=
+CORS_ALLOWED_ORIGINS=
+PORT=
+```
 
-When the service runs directly on the host, Game listens on port `3002` by default. The local URLs used by the frontend are:
+The template also lists `GAME_DATABASE_DIRECT_URL` as a migration-only variable. Provide it privately only when running Prisma migration commands; it is not a runtime or deployment credential. `AUTHUSER_URL` is the AuthUser base URL without the `/v1` suffix. When Game runs individually, it points to the local AuthUser endpoint. `JWT_PUBLIC_KEY`, `JWT_ISSUER`, and `JWT_AUDIENCE` must match AuthUser's corresponding signing configuration. PEM values may use literal `\n` escapes. Never commit `.env` files, keys, or database credentials.
 
-| Service | Local URL |
+Start Game individually:
+
+```bash
+pnpm start:dev
+```
+
+Game listens on local port 3002 by default.
+
+## Local endpoints and behavior
+
+| Resource | URL |
 | --- | --- |
 | AuthUser | `http://localhost:3001` |
-| Game API | `http://localhost:3002` |
-| Game Swagger UI | `http://localhost:3002/docs` |
-| Game OpenAPI JSON | `http://localhost:3002/docs/openapi.json` |
+| Game service | `http://localhost:3002` |
+| Swagger UI | `http://localhost:3002/docs` |
+| OpenAPI JSON | `http://localhost:3002/docs/openapi.json` |
 | Frontend | `http://localhost:3000` |
 
-The Swagger UI and OpenAPI document are public documentation endpoints. The five Game favorite operations remain protected by the `Authorization: Bearer <token>` header described in the contract.
+Swagger and OpenAPI are public documentation endpoints. Favorite operations require `Authorization: Bearer <token>`. Invalid or revoked credentials return `401`; an unavailable AuthUser dependency returns `503` without executing the favorite use case.
 
-Every protected request keeps the frontend's `Authorization: Bearer <token>` header unchanged. Game verifies the RS256 signature and claims locally, then asks AuthUser to validate the session and revocation state. Invalid or revoked credentials return `401`; an unavailable AuthUser dependency returns `503` and the favorite use case is not executed.
+## Tests and quality checks
+
+```bash
+pnpm test
+pnpm test:e2e
+pnpm format:check
+pnpm lint
+pnpm typecheck
+pnpm build
+```
 
 ## Related projects
 
