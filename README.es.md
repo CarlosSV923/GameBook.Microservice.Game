@@ -2,45 +2,83 @@
 
 [Leer este README en inglés](README.md)
 
-`GameBook.Microservice.Game` será el servicio de favoritos de GameBook, un proyecto de portfolio para explorar videojuegos y administrar una colección personal.
+`GameBook.Microservice.Game` es el servicio de favoritos de GameBook. Almacena los juegos favoritos de cada usuario autenticado y expone las operaciones que el frontend necesita para administrar esa colección.
 
 ## Responsabilidad
 
-El servicio será propietario de la persistencia de juegos favoritos y de las operaciones autenticadas de favoritos de cada usuario. Está previsto con NestJS, Prisma y PostgreSQL, mediante una estructura orientada a DDD y una interfaz OpenAPI/Swagger. Verificará el JWT del usuario y mantendrá su esquema de base de datos independiente de AuthUser.
+Game es propietario de la persistencia de favoritos, su creación y eliminación, el listado y filtrado, las sugerencias y la sincronización de instantáneas. Valida localmente el JWT RS256 emitido por AuthUser, comprueba mediante AuthUser el estado de la sesión y su revocación, y mantiene su esquema PostgreSQL independiente de AuthUser.
 
-## Estado del repositorio
+## Arquitectura implementada
 
-Este repositorio contiene la base inicial del proyecto. La implementación de la aplicación, la infraestructura y el despliegue están programados intencionadamente como tareas SDD posteriores.
+- `src/api/` — controladores de favoritos, guard JWT, validación, CORS, IDs de solicitud, mapeo de excepciones y Swagger/OpenAPI.
+- `src/application/` — casos de uso de favoritos, errores, puertos y tokens de dependencias.
+- `src/domain/` — entidades de favoritos, reglas de plataformas, repositorios y errores de dominio.
+- `src/infrastructure/` — persistencia Prisma, verificación JWT, cliente HTTP de AuthUser, configuración de runtime y adaptadores.
+- `src/main.ts` — arranque de la aplicación, configuración HTTP y documentación.
 
-## Configuración local de runtime
+El acceso runtime a la base de datos usa `GAME_DATABASE_URL`. Las migraciones Prisma usan `GAME_DATABASE_DIRECT_URL` por separado y únicamente desde comandos de migración controlados o Actions; las credenciales de migración no son credenciales runtime ni forman parte de Docker Compose.
 
-Game requiere `GAME_DATABASE_URL`, `JWT_PUBLIC_KEY`, `JWT_ISSUER`, `JWT_AUDIENCE`, `AUTHUSER_URL` y `CORS_ALLOWED_ORIGINS` en un archivo `.env` privado e ignorado por Git. La clave pública debe corresponder a la clave privada local de AuthUser, y `JWT_ISSUER` y `JWT_AUDIENCE` deben usar los mismos valores en ambos servicios. Los orígenes CORS son valores exactos separados por comas; los comodines se ignoran.
+## Configuración local
 
-Cuando ambos servicios se ejecutan directamente en el host, usa:
+Requisitos previos:
 
-```dotenv
-AUTHUSER_URL=http://localhost:3001
-PORT=3002
-CORS_ALLOWED_ORIGINS=http://localhost:3000
+- Node.js 24 o una versión LTS compatible.
+- pnpm 12.4.1 mediante Corepack.
+- Un rol local de prueba para la base de datos, la clave pública de AuthUser y valores coincidentes de issuer/audience JWT.
+- AuthUser ejecutándose localmente al probar peticiones protegidas.
+
+Instala las dependencias y genera el cliente Prisma:
+
+```bash
+corepack enable
+pnpm install --frozen-lockfile
+pnpm db:generate
 ```
 
-`AUTHUSER_URL` es la URL base de AuthUser sin el sufijo `/v1`. Cuando Game se ejecuta dentro de Docker Compose, `localhost` apunta al contenedor de Game; usa en su lugar el nombre del servicio AuthUser dentro de la red de Compose, por ejemplo `AUTHUSER_URL=http://authuser:3001` si el servicio se llama `authuser`.
+Crea un archivo `.env` privado e ignorado por Git. Los nombres de variables se muestran sin valores:
 
-## Servicio local y documentación de la API
+```dotenv
+GAME_DATABASE_URL=
+JWT_PUBLIC_KEY=
+JWT_ISSUER=
+JWT_AUDIENCE=
+AUTHUSER_URL=
+CORS_ALLOWED_ORIGINS=
+PORT=
+```
 
-Cuando el servicio se ejecuta directamente en el host, Game escucha por defecto en el puerto `3002`. Las URLs locales que usará el frontend son:
+`AUTHUSER_URL` es la URL base de AuthUser sin el sufijo `/v1`. Cuando ambos servicios se ejecutan en el host, apunta al endpoint local de AuthUser; dentro de Compose se resuelve mediante el nombre de servicio `authuser`. `JWT_PUBLIC_KEY`, `JWT_ISSUER` y `JWT_AUDIENCE` deben coincidir con la configuración de firma de AuthUser. Los valores PEM pueden usar escapes literales `\n`. Nunca confirmes archivos de entorno, claves ni credenciales de base de datos.
 
-| Servicio | URL local |
+Inicia el servicio:
+
+```bash
+pnpm start:dev
+```
+
+Game escucha por defecto en el puerto local 3002.
+
+## Endpoints y comportamiento locales
+
+| Recurso | URL |
 | --- | --- |
 | AuthUser | `http://localhost:3001` |
-| API de Game | `http://localhost:3002` |
-| Swagger UI de Game | `http://localhost:3002/docs` |
-| JSON OpenAPI de Game | `http://localhost:3002/docs/openapi.json` |
+| Servicio Game | `http://localhost:3002` |
+| Swagger UI | `http://localhost:3002/docs` |
+| JSON OpenAPI | `http://localhost:3002/docs/openapi.json` |
 | Frontend | `http://localhost:3000` |
 
-Swagger UI y el documento OpenAPI son endpoints públicos de documentación. Las cinco operaciones de favoritos de Game siguen protegidas por la cabecera `Authorization: Bearer <token>` descrita en el contrato.
+Swagger y OpenAPI son endpoints públicos de documentación. Las operaciones de favoritos requieren `Authorization: Bearer <token>`. Las credenciales inválidas o revocadas devuelven `401`; si AuthUser no está disponible se devuelve `503` sin ejecutar el caso de uso de favoritos.
 
-Cada petición protegida conserva sin cambios la cabecera `Authorization: Bearer <token>` enviada por el frontend. Game verifica localmente la firma y los claims RS256 y después solicita a AuthUser la validación de la sesión y su estado de revocación. Las credenciales inválidas o revocadas devuelven `401`; si AuthUser no está disponible devuelve `503` y no se ejecuta el caso de uso de favoritos.
+## Pruebas y comprobaciones de calidad
+
+```bash
+pnpm test
+pnpm test:e2e
+pnpm format:check
+pnpm lint
+pnpm typecheck
+pnpm build
+```
 
 ## Proyectos relacionados
 
