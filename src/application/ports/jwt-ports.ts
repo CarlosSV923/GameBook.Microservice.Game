@@ -7,6 +7,8 @@ export interface JwtClaims {
   readonly aud: string;
 }
 
+export const JWT_VERIFIER = Symbol('JWT_VERIFIER');
+
 export interface JwtVerifier {
   verify(token: string): Promise<JwtClaims>;
 }

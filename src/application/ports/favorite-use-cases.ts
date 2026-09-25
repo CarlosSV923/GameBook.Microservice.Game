@@ -11,6 +11,8 @@ import {
   type FavoriteSuggestionQuery,
 } from '../../domain/favorites/favorite-repository.js';
 
+export const FAVORITE_REPOSITORY = Symbol('FAVORITE_REPOSITORY');
+
 export interface CreateFavoriteUseCase {
   execute(input: NewFavorite): Promise<Favorite>;
 }

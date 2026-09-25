@@ -35,6 +35,8 @@ const publicMessages: Record<string, string> = {
 const statusCodes: Record<number, string> = {
   [HttpStatus.BAD_REQUEST]: 'VALIDATION_ERROR',
   [HttpStatus.UNAUTHORIZED]: 'TOKEN_INVALID',
+  [HttpStatus.NOT_FOUND]: 'FAVORITE_NOT_FOUND',
+  [HttpStatus.CONFLICT]: 'FAVORITE_ALREADY_EXISTS',
   [HttpStatus.INTERNAL_SERVER_ERROR]: 'INTERNAL_ERROR',
   [HttpStatus.SERVICE_UNAVAILABLE]: 'AUTHUSER_UNAVAILABLE',
 };

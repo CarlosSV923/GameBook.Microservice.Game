@@ -10,6 +10,7 @@ import {
   type FavoritePersistence,
 } from '../../../domain/favorites/favorite.js';
 import type { FavoritePlatformPersistence } from '../../../domain/favorites/favorite-platform.js';
+import { FavoriteAlreadyExistsError } from '../../../application/errors/favorite-errors.js';
 import type { Prisma, PrismaClient } from './generated/client.js';
 
 const DEFAULT_PAGE = 1;
@@ -44,33 +45,25 @@ export class PrismaFavoriteRepository implements FavoriteRepository {
       name: platform.name,
     }));
 
-    await this.prisma.favorite.upsert({
-      where: {
-        userId_igdbId: {
+    try {
+      await this.prisma.favorite.create({
+        data: {
           userId: persistence.userId,
           igdbId: persistence.igdbId,
+          name: persistence.name,
+          released: persistence.released,
+          imageUrl: persistence.imageUrl,
+          rating: persistence.rating,
+          platforms: { create: platformData },
         },
-      },
-      create: {
-        userId: persistence.userId,
-        igdbId: persistence.igdbId,
-        name: persistence.name,
-        released: persistence.released,
-        imageUrl: persistence.imageUrl,
-        rating: persistence.rating,
-        platforms: { create: platformData },
-      },
-      update: {
-        name: persistence.name,
-        released: persistence.released,
-        imageUrl: persistence.imageUrl,
-        rating: persistence.rating,
-        platforms: {
-          deleteMany: {},
-          create: platformData,
-        },
-      },
-    });
+      });
+    } catch (error) {
+      if (isUniqueConstraintViolation(error)) {
+        throw new FavoriteAlreadyExistsError();
+      }
+
+      throw error;
+    }
   }
 
   async list(
@@ -149,6 +142,15 @@ export class PrismaFavoriteRepository implements FavoriteRepository {
 
     return result.count === 1;
   }
+}
+
+function isUniqueConstraintViolation(error: unknown): boolean {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'code' in error &&
+    error.code === 'P2002'
+  );
 }
 
 function buildListWhere(
