@@ -1,8 +1,9 @@
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
   ArrayUnique,
   IsArray,
   IsDateString,
+  IsIn,
   IsInt,
   IsNotEmpty,
   IsNumber,
@@ -107,4 +108,22 @@ export class ListFavoritesQueryDto {
   @Min(1)
   @Max(1000)
   pageSize?: number;
+}
+
+export class SuggestFavoritesQueryDto {
+  @IsIn(['name', 'platform'])
+  type!: 'name' | 'platform';
+
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(100)
+  q!: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(20)
+  limit?: number;
 }

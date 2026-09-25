@@ -9,6 +9,7 @@ import { FavoritesController } from '../../src/api/favorites/favorites.controlle
 import { CreateFavoriteService } from '../../src/application/use-cases/create-favorite.js';
 import { DeleteFavoriteService } from '../../src/application/use-cases/delete-favorite.js';
 import { ListFavoritesService } from '../../src/application/use-cases/list-favorites.js';
+import { SuggestFavoritesService } from '../../src/application/use-cases/suggest-favorites.js';
 import {
   FavoriteAlreadyExistsError,
   FavoriteNotFoundError,
@@ -22,6 +23,7 @@ describe('Favorites HTTP API', () => {
   const createFavorite = { execute: vi.fn() };
   const deleteFavorite = { execute: vi.fn() };
   const listFavorites = { execute: vi.fn() };
+  const suggestFavorites = { execute: vi.fn() };
 
   beforeEach(async () => {
     vi.clearAllMocks();
@@ -31,6 +33,7 @@ describe('Favorites HTTP API', () => {
         { provide: CreateFavoriteService, useValue: createFavorite },
         { provide: DeleteFavoriteService, useValue: deleteFavorite },
         { provide: ListFavoritesService, useValue: listFavorites },
+        { provide: SuggestFavoritesService, useValue: suggestFavorites },
       ],
     })
       .overrideGuard(JwtAuthGuard)
@@ -113,6 +116,70 @@ describe('Favorites HTTP API', () => {
       page: 2,
       pageSize: 20,
     });
+  });
+
+  it('suggests own names with a trimmed query and bounded response', async () => {
+    suggestFavorites.execute.mockResolvedValue([
+      { type: 'name', value: 'Grand Example' },
+    ]);
+
+    await request(app.getHttpServer())
+      .get('/v1/favorites/suggestions')
+      .query({ type: 'name', q: ' grand ', limit: 20 })
+      .set('x-request-id', 'req_name_suggestions')
+      .expect(200)
+      .expect('x-request-id', 'req_name_suggestions')
+      .expect({
+        type: 'name',
+        query: 'grand',
+        items: [{ type: 'name', value: 'Grand Example' }],
+      });
+
+    expect(suggestFavorites.execute).toHaveBeenCalledWith({
+      userId,
+      type: 'name',
+      query: 'grand',
+      limit: 20,
+    });
+  });
+
+  it('suggests own platforms with their IDs', async () => {
+    suggestFavorites.execute.mockResolvedValue([
+      { type: 'platform', value: 'PC', platformId: 6 },
+    ]);
+
+    await request(app.getHttpServer())
+      .get('/v1/favorites/suggestions')
+      .query({ type: 'platform', q: 'pc' })
+      .expect(200)
+      .expect({
+        type: 'platform',
+        query: 'pc',
+        items: [{ type: 'platform', value: 'PC', platformId: 6 }],
+      });
+
+    expect(suggestFavorites.execute).toHaveBeenCalledWith({
+      userId,
+      type: 'platform',
+      query: 'pc',
+      limit: undefined,
+    });
+  });
+
+  it('rejects invalid suggestion query parameters', async () => {
+    await request(app.getHttpServer())
+      .get('/v1/favorites/suggestions')
+      .query({ type: 'other', q: ' ', limit: 21 })
+      .set('x-request-id', 'req_invalid_suggestions')
+      .expect(400)
+      .expect((response) => {
+        expect(response.body).toMatchObject({
+          code: 'VALIDATION_ERROR',
+          requestId: 'req_invalid_suggestions',
+        });
+      });
+
+    expect(suggestFavorites.execute).not.toHaveBeenCalled();
   });
 
   it('maps an inverted year range validation error', async () => {
