@@ -25,6 +25,20 @@ PORT=3002
 
 `AUTHUSER_URL` is the AuthUser base URL without the `/v1` suffix. When Game runs inside Docker Compose, `localhost` points to the Game container; use the AuthUser service name on the Compose network instead, for example `AUTHUSER_URL=http://authuser:3001` when that service is named `authuser`.
 
+## Local service and API documentation
+
+When the service runs directly on the host, Game listens on port `3002` by default. The local URLs used by the frontend are:
+
+| Service | Local URL |
+| --- | --- |
+| AuthUser | `http://localhost:3001` |
+| Game API | `http://localhost:3002` |
+| Game Swagger UI | `http://localhost:3002/docs` |
+| Game OpenAPI JSON | `http://localhost:3002/docs/openapi.json` |
+| Frontend | `http://localhost:3000` |
+
+The Swagger UI and OpenAPI document are public documentation endpoints. The five Game favorite operations remain protected by the `Authorization: Bearer <token>` header described in the contract.
+
 Every protected request keeps the frontend's `Authorization: Bearer <token>` header unchanged. Game verifies the RS256 signature and claims locally, then asks AuthUser to validate the session and revocation state. Invalid or revoked credentials return `401`; an unavailable AuthUser dependency returns `503` and the favorite use case is not executed.
 
 ## Related projects

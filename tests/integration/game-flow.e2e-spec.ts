@@ -235,6 +235,13 @@ describe('Game authenticated favorite flow', () => {
       title: 'GameBook Game API',
       version: '0.1.0',
     });
+    expect(response.body.openapi).toBe('3.0.3');
+    expect(response.body.servers).toEqual([
+      {
+        url: 'http://localhost:3002',
+        description: 'Local development server for GameBook.Microservice.Game.',
+      },
+    ]);
     expect(response.body.components.securitySchemes.BearerAuth).toMatchObject({
       type: 'http',
       scheme: 'bearer',
