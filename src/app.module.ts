@@ -1,7 +1,6 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { HttpModule, HttpService } from '@nestjs/axios';
 import { APP_FILTER, APP_PIPE } from '@nestjs/core';
-import { AppController } from './app.controller.js';
-import { AppService } from './app.service.js';
 import { FavoritesController } from './api/favorites/favorites.controller.js';
 import { AUTH_USER_SESSION_CLIENT } from './application/ports/auth-user-session.js';
 import { FAVORITE_REPOSITORY } from './application/ports/favorite-use-cases.js';
@@ -27,10 +26,9 @@ import type { PrismaClient } from './infrastructure/persistence/prisma/generated
 const PRISMA_CLIENT = Symbol('PRISMA_CLIENT');
 
 @Module({
-  imports: [],
-  controllers: [AppController, FavoritesController],
+  imports: [HttpModule],
+  controllers: [FavoritesController],
   providers: [
-    AppService,
     {
       provide: GAME_RUNTIME_CONFIG,
       useFactory: loadGameRuntimeConfig,
@@ -53,9 +51,9 @@ const PRISMA_CLIENT = Symbol('PRISMA_CLIENT');
     },
     {
       provide: AUTH_USER_SESSION_CLIENT,
-      useFactory: (config: GameRuntimeConfig) =>
-        new AuthUserSessionClient(config.authUserUrl),
-      inject: [GAME_RUNTIME_CONFIG],
+      useFactory: (config: GameRuntimeConfig, httpService: HttpService) =>
+        new AuthUserSessionClient(config.authUserUrl, httpService),
+      inject: [GAME_RUNTIME_CONFIG, HttpService],
     },
     {
       provide: FAVORITE_REPOSITORY,

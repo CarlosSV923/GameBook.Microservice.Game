@@ -1,3 +1,5 @@
+import { HttpService } from '@nestjs/axios';
+import { firstValueFrom } from 'rxjs';
 import {
   AuthUserSessionRejectedError,
   AuthUserUnavailableError,
@@ -15,50 +17,45 @@ const SESSION_ERROR_CODES = new Set<AuthUserSessionErrorCode>([
   'SESSION_REVOKED',
 ]);
 
-export type Fetcher = typeof fetch;
-
 export class AuthUserSessionClient implements AuthUserSessionClientPort {
   private readonly sessionUrl: URL;
 
   constructor(
     authUserUrl: string,
-    private readonly fetcher: Fetcher = fetch,
+    private readonly httpService: HttpService,
     private readonly timeoutMs: number = DEFAULT_TIMEOUT_MS,
   ) {
     this.sessionUrl = new URL(SESSION_PATH, ensureTrailingSlash(authUserUrl));
   }
 
   async validate(token: string): Promise<AuthUserSession> {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), this.timeoutMs);
-
-    let response: Response;
+    let response: { status: number; data: unknown };
     try {
-      response = await this.fetcher(this.sessionUrl, {
-        method: 'GET',
-        headers: {
-          Accept: 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        signal: controller.signal,
-      });
+      response = await firstValueFrom(
+        this.httpService.get(this.sessionUrl.toString(), {
+          headers: {
+            Accept: 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          timeout: this.timeoutMs,
+          validateStatus: () => true,
+        }),
+      );
     } catch {
       throw new AuthUserUnavailableError();
-    } finally {
-      clearTimeout(timeout);
     }
 
     if (response.status === 401) {
       throw new AuthUserSessionRejectedError(
-        await readSessionErrorCode(response),
+        readSessionErrorCode(response.data),
       );
     }
 
-    if (!response.ok) {
+    if (response.status < 200 || response.status >= 300) {
       throw new AuthUserUnavailableError();
     }
 
-    const userId = await readSessionUserId(response);
+    const userId = readSessionUserId(response.data);
     if (!userId) {
       throw new AuthUserUnavailableError();
     }
@@ -67,34 +64,22 @@ export class AuthUserSessionClient implements AuthUserSessionClientPort {
   }
 }
 
-async function readSessionErrorCode(
-  response: Response,
-): Promise<AuthUserSessionErrorCode> {
-  try {
-    const body: unknown = await response.json();
-    if (
-      isRecord(body) &&
-      typeof body.code === 'string' &&
-      SESSION_ERROR_CODES.has(body.code as AuthUserSessionErrorCode)
-    ) {
-      return body.code as AuthUserSessionErrorCode;
-    }
-  } catch {
-    // The stable fallback below keeps the error response generic.
+function readSessionErrorCode(body: unknown): AuthUserSessionErrorCode {
+  if (
+    isRecord(body) &&
+    typeof body.code === 'string' &&
+    SESSION_ERROR_CODES.has(body.code as AuthUserSessionErrorCode)
+  ) {
+    return body.code as AuthUserSessionErrorCode;
   }
 
   return 'TOKEN_INVALID';
 }
 
-async function readSessionUserId(response: Response): Promise<string | null> {
-  try {
-    const body: unknown = await response.json();
-    const user = isRecord(body) ? body.user : undefined;
-    const userId = isRecord(user) ? user.id : undefined;
-    return typeof userId === 'string' && userId.length > 0 ? userId : null;
-  } catch {
-    return null;
-  }
+function readSessionUserId(body: unknown): string | null {
+  const user = isRecord(body) ? body.user : undefined;
+  const userId = isRecord(user) ? user.id : undefined;
+  return typeof userId === 'string' && userId.length > 0 ? userId : null;
 }
 
 function ensureTrailingSlash(value: string): string {
