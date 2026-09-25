@@ -8,6 +8,7 @@ import {
 import { CreateFavoriteService } from '../../../../src/application/use-cases/create-favorite.js';
 import { DeleteFavoriteService } from '../../../../src/application/use-cases/delete-favorite.js';
 import { ListFavoritesService } from '../../../../src/application/use-cases/list-favorites.js';
+import { SuggestFavoritesService } from '../../../../src/application/use-cases/suggest-favorites.js';
 
 const favoriteInput = {
   userId: '7b7f3d2e-6d8d-4e8c-9e0c-2a96f2fb11aa',
@@ -119,12 +120,35 @@ describe('favorite use cases', () => {
     ).rejects.toBeInstanceOf(FavoriteYearRangeInvalidError);
     expect(repository.list).not.toHaveBeenCalled();
   });
+
+  it('suggests only the authenticated subject with the requested query', async () => {
+    const repository = createRepository();
+    repository.suggest.mockResolvedValue([
+      { type: 'name', value: 'Grand Example' },
+    ]);
+    const service = new SuggestFavoritesService(repository);
+
+    await expect(
+      service.execute({
+        userId: favoriteInput.userId,
+        type: 'name',
+        query: 'grand',
+        limit: 20,
+      }),
+    ).resolves.toEqual([{ type: 'name', value: 'Grand Example' }]);
+    expect(repository.suggest).toHaveBeenCalledWith(favoriteInput.userId, {
+      type: 'name',
+      query: 'grand',
+      limit: 20,
+    });
+  });
 });
 
 function createRepository(): FavoriteRepository & {
   save: ReturnType<typeof vi.fn>;
   delete: ReturnType<typeof vi.fn>;
   list: ReturnType<typeof vi.fn>;
+  suggest: ReturnType<typeof vi.fn>;
 } {
   return {
     findByIdentity: vi.fn(),
@@ -136,5 +160,6 @@ function createRepository(): FavoriteRepository & {
     save: ReturnType<typeof vi.fn>;
     delete: ReturnType<typeof vi.fn>;
     list: ReturnType<typeof vi.fn>;
+    suggest: ReturnType<typeof vi.fn>;
   };
 }

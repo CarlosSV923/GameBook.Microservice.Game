@@ -16,6 +16,7 @@ import {
 } from '@nestjs/common';
 import type { Request } from 'express';
 import { Favorite, type NewFavorite } from '../../domain/favorites/favorite.js';
+import type { FavoriteSuggestion } from '../../domain/favorites/favorite-repository.js';
 import { DomainValidationError } from '../../domain/shared/domain-validation-error.js';
 import {
   FavoriteAlreadyExistsError,
@@ -25,6 +26,7 @@ import {
 import { CreateFavoriteService } from '../../application/use-cases/create-favorite.js';
 import { DeleteFavoriteService } from '../../application/use-cases/delete-favorite.js';
 import { ListFavoritesService } from '../../application/use-cases/list-favorites.js';
+import { SuggestFavoritesService } from '../../application/use-cases/suggest-favorites.js';
 import {
   JwtAuthGuard,
   type AuthenticatedRequest,
@@ -33,6 +35,7 @@ import {
   CreateFavoriteDto,
   FavoriteIdParamDto,
   ListFavoritesQueryDto,
+  SuggestFavoritesQueryDto,
 } from './favorite.dto.js';
 
 @Controller('v1/favorites')
@@ -42,7 +45,27 @@ export class FavoritesController {
     private readonly createFavorite: CreateFavoriteService,
     private readonly deleteFavorite: DeleteFavoriteService,
     private readonly listFavorites: ListFavoritesService,
+    private readonly suggestFavorites: SuggestFavoritesService,
   ) {}
+
+  @Get('suggestions')
+  async suggest(
+    @Req() request: AuthenticatedRequest,
+    @Query() query: SuggestFavoritesQueryDto,
+  ): Promise<FavoriteSuggestionResponse> {
+    const items = await this.suggestFavorites.execute({
+      userId: authenticatedUserId(request),
+      type: query.type,
+      query: query.q,
+      limit: query.limit,
+    });
+
+    return {
+      type: query.type,
+      query: query.q,
+      items,
+    };
+  }
 
   @Get()
   async list(
@@ -52,7 +75,12 @@ export class FavoritesController {
     try {
       const page = await this.listFavorites.execute({
         userId: authenticatedUserId(request),
-        ...query,
+        name: query.name,
+        platformId: query.platformId,
+        yearFrom: query.yearFrom,
+        yearTo: query.yearTo,
+        page: query.page,
+        pageSize: query.pageSize,
       });
 
       return {
@@ -114,6 +142,12 @@ type FavoritePageResponse = {
   pageSize: number;
   total: number;
   hasNext: boolean;
+};
+
+type FavoriteSuggestionResponse = {
+  type: 'name' | 'platform';
+  query: string;
+  items: readonly FavoriteSuggestion[];
 };
 
 function toNewFavorite(
