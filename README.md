@@ -12,6 +12,21 @@ The service will own favorite-game persistence and the authenticated favorite op
 
 This repository contains the initial project foundation. Application implementation, infrastructure, and deployment are intentionally scheduled as later SDD tasks.
 
+## Local runtime configuration
+
+Game requires `GAME_DATABASE_URL`, `JWT_PUBLIC_KEY`, `JWT_ISSUER`, `JWT_AUDIENCE`, and `AUTHUSER_URL` in its private, ignored `.env` file. The public key must match AuthUser's local private key, and `JWT_ISSUER` and `JWT_AUDIENCE` must use the same values as AuthUser.
+
+When both services run directly on the host, use:
+
+```dotenv
+AUTHUSER_URL=http://localhost:3001
+PORT=3002
+```
+
+`AUTHUSER_URL` is the AuthUser base URL without the `/v1` suffix. When Game runs inside Docker Compose, `localhost` points to the Game container; use the AuthUser service name on the Compose network instead, for example `AUTHUSER_URL=http://authuser:3001` when that service is named `authuser`.
+
+Every protected request keeps the frontend's `Authorization: Bearer <token>` header unchanged. Game verifies the RS256 signature and claims locally, then asks AuthUser to validate the session and revocation state. Invalid or revoked credentials return `401`; an unavailable AuthUser dependency returns `503` and the favorite use case is not executed.
+
 ## Related projects
 
 - [GameBook.Microservice.AuthUser](https://github.com/CarlosSV923/GameBook.Microservice.AuthUser)
