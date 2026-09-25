@@ -14,13 +14,14 @@ This repository contains the initial project foundation. Application implementat
 
 ## Local runtime configuration
 
-Game requires `GAME_DATABASE_URL`, `JWT_PUBLIC_KEY`, `JWT_ISSUER`, `JWT_AUDIENCE`, and `AUTHUSER_URL` in its private, ignored `.env` file. The public key must match AuthUser's local private key, and `JWT_ISSUER` and `JWT_AUDIENCE` must use the same values as AuthUser.
+Game requires `GAME_DATABASE_URL`, `JWT_PUBLIC_KEY`, `JWT_ISSUER`, `JWT_AUDIENCE`, `AUTHUSER_URL`, and `CORS_ALLOWED_ORIGINS` in its private, ignored `.env` file. The public key must match AuthUser's local private key, and `JWT_ISSUER` and `JWT_AUDIENCE` must use the same values as AuthUser. CORS origins are exact comma-separated browser origins; wildcard values are ignored.
 
 When both services run directly on the host, use:
 
 ```dotenv
 AUTHUSER_URL=http://localhost:3001
 PORT=3002
+CORS_ALLOWED_ORIGINS=http://localhost:3000
 ```
 
 `AUTHUSER_URL` is the AuthUser base URL without the `/v1` suffix. When Game runs inside Docker Compose, `localhost` points to the Game container; use the AuthUser service name on the Compose network instead, for example `AUTHUSER_URL=http://authuser:3001` when that service is named `authuser`.
