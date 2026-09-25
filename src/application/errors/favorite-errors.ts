@@ -11,3 +11,10 @@ export class FavoriteNotFoundError extends Error {
     this.name = 'FavoriteNotFoundError';
   }
 }
+
+export class FavoriteYearRangeInvalidError extends Error {
+  constructor() {
+    super('The favorite year range is invalid.');
+    this.name = 'FavoriteYearRangeInvalidError';
+  }
+}

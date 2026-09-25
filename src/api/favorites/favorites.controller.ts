@@ -9,6 +9,8 @@ import {
   Param,
   Post,
   Body,
+  Get,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -18,14 +20,20 @@ import { DomainValidationError } from '../../domain/shared/domain-validation-err
 import {
   FavoriteAlreadyExistsError,
   FavoriteNotFoundError,
+  FavoriteYearRangeInvalidError,
 } from '../../application/errors/favorite-errors.js';
 import { CreateFavoriteService } from '../../application/use-cases/create-favorite.js';
 import { DeleteFavoriteService } from '../../application/use-cases/delete-favorite.js';
+import { ListFavoritesService } from '../../application/use-cases/list-favorites.js';
 import {
   JwtAuthGuard,
   type AuthenticatedRequest,
 } from '../auth/jwt-auth-guard.js';
-import { CreateFavoriteDto, FavoriteIdParamDto } from './favorite.dto.js';
+import {
+  CreateFavoriteDto,
+  FavoriteIdParamDto,
+  ListFavoritesQueryDto,
+} from './favorite.dto.js';
 
 @Controller('v1/favorites')
 @UseGuards(JwtAuthGuard)
@@ -33,7 +41,31 @@ export class FavoritesController {
   constructor(
     private readonly createFavorite: CreateFavoriteService,
     private readonly deleteFavorite: DeleteFavoriteService,
+    private readonly listFavorites: ListFavoritesService,
   ) {}
+
+  @Get()
+  async list(
+    @Req() request: AuthenticatedRequest,
+    @Query() query: ListFavoritesQueryDto,
+  ): Promise<FavoritePageResponse> {
+    try {
+      const page = await this.listFavorites.execute({
+        userId: authenticatedUserId(request),
+        ...query,
+      });
+
+      return {
+        items: page.items.map(toResponse),
+        page: page.page,
+        pageSize: page.pageSize,
+        total: page.total,
+        hasNext: page.hasNext,
+      };
+    } catch (error) {
+      throw mapFavoriteError(error);
+    }
+  }
 
   @Post()
   async create(
@@ -74,6 +106,14 @@ type FavoriteResponse = {
   imageUrl: string | null;
   rating: number | null;
   platforms: Array<{ id: number; name: string }>;
+};
+
+type FavoritePageResponse = {
+  items: FavoriteResponse[];
+  page: number;
+  pageSize: number;
+  total: number;
+  hasNext: boolean;
 };
 
 function toNewFavorite(
@@ -124,6 +164,13 @@ function mapFavoriteError(error: unknown): Error {
 
   if (error instanceof FavoriteNotFoundError) {
     return new NotFoundException({ code: 'FAVORITE_NOT_FOUND' });
+  }
+
+  if (error instanceof FavoriteYearRangeInvalidError) {
+    return new BadRequestException({
+      code: 'VALIDATION_ERROR',
+      details: [{ field: 'yearFrom', reason: 'YEAR_RANGE_INVALID' }],
+    });
   }
 
   if (error instanceof DomainValidationError) {

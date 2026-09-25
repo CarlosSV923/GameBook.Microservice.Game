@@ -8,6 +8,7 @@ import { FAVORITE_REPOSITORY } from './application/ports/favorite-use-cases.js';
 import { JWT_VERIFIER } from './application/ports/jwt-ports.js';
 import { CreateFavoriteService } from './application/use-cases/create-favorite.js';
 import { DeleteFavoriteService } from './application/use-cases/delete-favorite.js';
+import { ListFavoritesService } from './application/use-cases/list-favorites.js';
 import { JwtAuthGuard } from './api/auth/jwt-auth-guard.js';
 import { ApiExceptionFilter } from './api/http/api-exception.filter.js';
 import { RequestIdMiddleware } from './api/http/request-id.js';
@@ -66,6 +67,7 @@ const PRISMA_CLIENT = Symbol('PRISMA_CLIENT');
     JwtAuthGuard,
     CreateFavoriteService,
     DeleteFavoriteService,
+    ListFavoritesService,
     { provide: APP_FILTER, useClass: ApiExceptionFilter },
     { provide: APP_PIPE, useFactory: createValidationPipe },
   ],
