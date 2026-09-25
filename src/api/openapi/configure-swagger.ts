@@ -1,16 +1,23 @@
 import type { INestApplication } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 export const SWAGGER_UI_PATH = 'docs';
 export const SWAGGER_JSON_PATH = 'docs/openapi.json';
 
 export function configureSwagger(application: INestApplication): void {
+  const port = application.get(ConfigService).get<string>('PORT') ?? '3002';
   const configuration = new DocumentBuilder()
     .setTitle('GameBook Game API')
     .setDescription(
       'Authenticated favorite-game operations isolated by the user UUID from the AuthUser JWT.',
     )
     .setVersion('0.1.0')
+    .setOpenAPIVersion('3.0.3')
+    .addServer(
+      `http://localhost:${port}`,
+      'Local development server for GameBook.Microservice.Game.',
+    )
     .addTag('Favorites', 'Own favorites, filters and pagination.')
     .addTag(
       'Suggestions',
