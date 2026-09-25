@@ -10,6 +10,7 @@ import { CreateFavoriteService } from '../../src/application/use-cases/create-fa
 import { DeleteFavoriteService } from '../../src/application/use-cases/delete-favorite.js';
 import { ListFavoritesService } from '../../src/application/use-cases/list-favorites.js';
 import { SuggestFavoritesService } from '../../src/application/use-cases/suggest-favorites.js';
+import { UpdateFavoriteSnapshotService } from '../../src/application/use-cases/update-favorite-snapshot.js';
 import {
   FavoriteAlreadyExistsError,
   FavoriteNotFoundError,
@@ -24,6 +25,7 @@ describe('Favorites HTTP API', () => {
   const deleteFavorite = { execute: vi.fn() };
   const listFavorites = { execute: vi.fn() };
   const suggestFavorites = { execute: vi.fn() };
+  const updateFavoriteSnapshot = { execute: vi.fn() };
 
   beforeEach(async () => {
     vi.clearAllMocks();
@@ -34,6 +36,10 @@ describe('Favorites HTTP API', () => {
         { provide: DeleteFavoriteService, useValue: deleteFavorite },
         { provide: ListFavoritesService, useValue: listFavorites },
         { provide: SuggestFavoritesService, useValue: suggestFavorites },
+        {
+          provide: UpdateFavoriteSnapshotService,
+          useValue: updateFavoriteSnapshot,
+        },
       ],
     })
       .overrideGuard(JwtAuthGuard)
@@ -180,6 +186,73 @@ describe('Favorites HTTP API', () => {
       });
 
     expect(suggestFavorites.execute).not.toHaveBeenCalled();
+  });
+
+  it('updates the authenticated subject snapshot after a successful IGDB detail', async () => {
+    const favorite = Favorite.create({
+      userId,
+      igdbId: 3498,
+      name: 'Updated Example',
+      released: null,
+      imageUrl: null,
+      rating: null,
+      platforms: [],
+    });
+    updateFavoriteSnapshot.execute.mockResolvedValue(favorite);
+
+    await request(app.getHttpServer())
+      .patch('/v1/favorites/3498/snapshot')
+      .send({ name: 'Updated Example', rating: null, platforms: [] })
+      .set('x-request-id', 'req_update_snapshot')
+      .expect(200)
+      .expect('x-request-id', 'req_update_snapshot')
+      .expect({
+        igdbId: 3498,
+        name: 'Updated Example',
+        released: null,
+        imageUrl: null,
+        rating: null,
+        platforms: [],
+      });
+
+    expect(updateFavoriteSnapshot.execute).toHaveBeenCalledWith({
+      userId,
+      igdbId: 3498,
+      snapshot: { name: 'Updated Example', rating: null, platforms: [] },
+    });
+  });
+
+  it('rejects an invalid snapshot field before calling the use case', async () => {
+    await request(app.getHttpServer())
+      .patch('/v1/favorites/3498/snapshot')
+      .set('x-request-id', 'req_invalid_snapshot')
+      .send({ rating: 101 })
+      .expect(400)
+      .expect((response) => {
+        expect(response.body).toMatchObject({
+          code: 'VALIDATION_ERROR',
+          requestId: 'req_invalid_snapshot',
+        });
+      });
+
+    expect(updateFavoriteSnapshot.execute).not.toHaveBeenCalled();
+  });
+
+  it('returns 404 when that subject does not own the snapshot favorite', async () => {
+    updateFavoriteSnapshot.execute.mockRejectedValue(
+      new FavoriteNotFoundError(),
+    );
+
+    await request(app.getHttpServer())
+      .patch('/v1/favorites/3498/snapshot')
+      .send({ name: 'Updated Example' })
+      .set('x-request-id', 'req_missing_snapshot')
+      .expect(404)
+      .expect({
+        code: 'FAVORITE_NOT_FOUND',
+        message: 'Favorite not found.',
+        requestId: 'req_missing_snapshot',
+      });
   });
 
   it('maps an inverted year range validation error', async () => {

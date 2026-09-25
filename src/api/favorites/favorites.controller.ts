@@ -7,6 +7,7 @@ import {
   HttpStatus,
   NotFoundException,
   Param,
+  Patch,
   Post,
   Body,
   Get,
@@ -15,7 +16,11 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import type { Request } from 'express';
-import { Favorite, type NewFavorite } from '../../domain/favorites/favorite.js';
+import {
+  Favorite,
+  type FavoriteSnapshotUpdate,
+  type NewFavorite,
+} from '../../domain/favorites/favorite.js';
 import type { FavoriteSuggestion } from '../../domain/favorites/favorite-repository.js';
 import { DomainValidationError } from '../../domain/shared/domain-validation-error.js';
 import {
@@ -27,6 +32,7 @@ import { CreateFavoriteService } from '../../application/use-cases/create-favori
 import { DeleteFavoriteService } from '../../application/use-cases/delete-favorite.js';
 import { ListFavoritesService } from '../../application/use-cases/list-favorites.js';
 import { SuggestFavoritesService } from '../../application/use-cases/suggest-favorites.js';
+import { UpdateFavoriteSnapshotService } from '../../application/use-cases/update-favorite-snapshot.js';
 import {
   JwtAuthGuard,
   type AuthenticatedRequest,
@@ -36,6 +42,7 @@ import {
   FavoriteIdParamDto,
   ListFavoritesQueryDto,
   SuggestFavoritesQueryDto,
+  UpdateFavoriteSnapshotDto,
 } from './favorite.dto.js';
 
 @Controller('v1/favorites')
@@ -46,6 +53,7 @@ export class FavoritesController {
     private readonly deleteFavorite: DeleteFavoriteService,
     private readonly listFavorites: ListFavoritesService,
     private readonly suggestFavorites: SuggestFavoritesService,
+    private readonly updateFavoriteSnapshot: UpdateFavoriteSnapshotService,
   ) {}
 
   @Get('suggestions')
@@ -110,6 +118,24 @@ export class FavoritesController {
     }
   }
 
+  @Patch(':igdbId/snapshot')
+  async updateSnapshot(
+    @Req() request: AuthenticatedRequest,
+    @Param() params: FavoriteIdParamDto,
+    @Body() body: UpdateFavoriteSnapshotDto,
+  ): Promise<FavoriteResponse> {
+    try {
+      const favorite = await this.updateFavoriteSnapshot.execute({
+        userId: authenticatedUserId(request),
+        igdbId: params.igdbId,
+        snapshot: toSnapshotUpdate(body),
+      });
+      return toResponse(favorite);
+    } catch (error) {
+      throw mapFavoriteError(error);
+    }
+  }
+
   @Delete(':igdbId')
   @HttpCode(HttpStatus.NO_CONTENT)
   async remove(
@@ -163,6 +189,45 @@ function toNewFavorite(
     rating: body.rating ?? null,
     platforms: body.platforms ?? [],
   };
+}
+
+function toSnapshotUpdate(
+  body: UpdateFavoriteSnapshotDto,
+): FavoriteSnapshotUpdate {
+  const update: {
+    name?: string;
+    released?: Date | null;
+    imageUrl?: string | null;
+    rating?: number | null;
+    platforms?: Array<{ id: number; name: string }>;
+  } = {};
+
+  if (body.name !== undefined) {
+    update.name = body.name;
+  }
+
+  if (body.released !== undefined) {
+    update.released = body.released
+      ? new Date(`${body.released}T00:00:00.000Z`)
+      : null;
+  }
+
+  if (body.imageUrl !== undefined) {
+    update.imageUrl = body.imageUrl;
+  }
+
+  if (body.rating !== undefined) {
+    update.rating = body.rating;
+  }
+
+  if (body.platforms !== undefined) {
+    update.platforms = body.platforms.map((platform) => ({
+      id: platform.id,
+      name: platform.name,
+    }));
+  }
+
+  return update;
 }
 
 function authenticatedUserId(

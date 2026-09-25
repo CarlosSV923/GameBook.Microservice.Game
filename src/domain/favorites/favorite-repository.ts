@@ -1,4 +1,4 @@
-import { Favorite } from './favorite.js';
+import { Favorite, type FavoriteSnapshotUpdate } from './favorite.js';
 
 export interface FavoriteListFilters {
   readonly name?: string;
@@ -44,5 +44,10 @@ export interface FavoriteRepository {
     userId: string,
     query: FavoriteSuggestionQuery,
   ): Promise<readonly FavoriteSuggestion[]>;
+  updateSnapshot(
+    userId: string,
+    igdbId: number,
+    update: FavoriteSnapshotUpdate,
+  ): Promise<Favorite | null>;
   delete(userId: string, igdbId: number): Promise<boolean>;
 }

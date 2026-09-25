@@ -7,6 +7,7 @@ describe('PrismaFavoriteRepository', () => {
   const favoriteDelegate = {
     findUnique: vi.fn(),
     create: vi.fn(),
+    update: vi.fn(),
     count: vi.fn(),
     findMany: vi.fn(),
     deleteMany: vi.fn(),
@@ -85,6 +86,79 @@ describe('PrismaFavoriteRepository', () => {
         },
       },
     });
+  });
+
+  it('updates an existing own snapshot and replaces its platforms atomically', async () => {
+    favoriteDelegate.findUnique.mockResolvedValue({
+      userId: favorite.userId,
+      igdbId: favorite.igdbId,
+      name: favorite.name,
+      released: favorite.released,
+      imageUrl: favorite.imageUrl,
+      rating: { toString: () => '94.5' },
+      platforms: [
+        { platformId: 6, name: 'PC' },
+        { platformId: 48, name: 'PlayStation 4' },
+      ],
+    });
+
+    await expect(
+      repository.updateSnapshot(favorite.userId, favorite.igdbId, {
+        name: 'Updated Game',
+        rating: null,
+        platforms: [{ id: 130, name: 'Nintendo Switch' }],
+      }),
+    ).resolves.toEqual(
+      Favorite.rehydrate({
+        ...favorite.toPersistence(),
+        name: 'Updated Game',
+        rating: null,
+        platforms: [{ id: 130, name: 'Nintendo Switch' }],
+      }),
+    );
+    expect(favoriteDelegate.update).toHaveBeenCalledWith({
+      where: {
+        userId_igdbId: { userId: favorite.userId, igdbId: favorite.igdbId },
+      },
+      data: {
+        name: 'Updated Game',
+        released: favorite.released,
+        imageUrl: favorite.imageUrl,
+        rating: null,
+        platforms: {
+          deleteMany: {},
+          create: [{ platformId: 130, name: 'Nintendo Switch' }],
+        },
+      },
+    });
+  });
+
+  it('does not update a favorite owned by another user', async () => {
+    favoriteDelegate.findUnique.mockResolvedValue(null);
+
+    await expect(
+      repository.updateSnapshot(favorite.userId, favorite.igdbId, {
+        name: 'Updated Game',
+      }),
+    ).resolves.toBeNull();
+    expect(favoriteDelegate.update).not.toHaveBeenCalled();
+  });
+
+  it('rejects an empty snapshot without writing to Prisma', async () => {
+    favoriteDelegate.findUnique.mockResolvedValue({
+      userId: favorite.userId,
+      igdbId: favorite.igdbId,
+      name: favorite.name,
+      released: favorite.released,
+      imageUrl: favorite.imageUrl,
+      rating: { toString: () => '94.5' },
+      platforms: [],
+    });
+
+    await expect(
+      repository.updateSnapshot(favorite.userId, favorite.igdbId, {}),
+    ).rejects.toMatchObject({ code: 'FAVORITE_SNAPSHOT_EMPTY' });
+    expect(favoriteDelegate.update).not.toHaveBeenCalled();
   });
 
   it('maps a database uniqueness race to the duplicate error', async () => {
