@@ -1,5 +1,5 @@
 import { generateKeyPairSync } from 'node:crypto';
-import { loadGameRuntimeConfig } from '../../../../src/infrastructure/config/game-runtime-config.js';
+import { validateGameEnvironment } from '../../../../src/infrastructure/config/game-runtime-config.js';
 
 function createEnvironment(): NodeJS.ProcessEnv {
   const { publicKey } = generateKeyPairSync('rsa', { modulusLength: 2048 });
@@ -16,32 +16,32 @@ function createEnvironment(): NodeJS.ProcessEnv {
   };
 }
 
-describe('loadGameRuntimeConfig', () => {
+describe('validateGameEnvironment', () => {
   it('loads the development runtime contract without exposing values', () => {
-    const configuration = loadGameRuntimeConfig(createEnvironment());
+    const configuration = validateGameEnvironment(createEnvironment());
 
     expect(configuration).toMatchObject({
-      databaseUrl: 'postgresql://ep-develop.neon.tech/gamebook',
-      jwtIssuer: 'gamebook-authuser-development',
-      jwtAudience: 'gamebook-api-development',
-      authUserUrl: 'http://localhost:3001',
+      GAME_DATABASE_URL: 'postgresql://ep-develop.neon.tech/gamebook',
+      JWT_ISSUER: 'gamebook-authuser-development',
+      JWT_AUDIENCE: 'gamebook-api-development',
+      AUTHUSER_URL: 'http://localhost:3001',
     });
-    expect(configuration.jwtPublicKey).toContain('BEGIN PUBLIC KEY');
+    expect(configuration.JWT_PUBLIC_KEY).toContain('BEGIN PUBLIC KEY');
   });
 
   it('normalizes escaped PEM newlines', () => {
     const environment = createEnvironment();
-    const configuration = loadGameRuntimeConfig(environment);
+    const configuration = validateGameEnvironment(environment);
 
-    expect(configuration.jwtPublicKey).not.toContain('\\n');
-    expect(configuration.jwtPublicKey).toContain('\n');
+    expect(configuration.JWT_PUBLIC_KEY).not.toContain('\\n');
+    expect(configuration.JWT_PUBLIC_KEY).toContain('\n');
   });
 
   it('fails closed when required settings are missing', () => {
     const environment = createEnvironment();
     delete environment.JWT_PUBLIC_KEY;
 
-    expect(() => loadGameRuntimeConfig(environment)).toThrow(
+    expect(() => validateGameEnvironment(environment)).toThrow(
       'Missing required Game configuration: JWT_PUBLIC_KEY',
     );
   });
@@ -50,7 +50,7 @@ describe('loadGameRuntimeConfig', () => {
     const environment = createEnvironment();
     environment.GAME_DATABASE_URL = 'https://not-a-database.example';
 
-    expect(() => loadGameRuntimeConfig(environment)).toThrow(
+    expect(() => validateGameEnvironment(environment)).toThrow(
       'Invalid Game configuration: GAME_DATABASE_URL',
     );
 
@@ -59,7 +59,7 @@ describe('loadGameRuntimeConfig', () => {
 
     let error: unknown;
     try {
-      loadGameRuntimeConfig(environment);
+      validateGameEnvironment(environment);
     } catch (caught) {
       error = caught;
     }

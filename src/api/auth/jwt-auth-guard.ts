@@ -1,6 +1,7 @@
 import {
   HttpException,
   HttpStatus,
+  Inject,
   Injectable,
   type CanActivate,
   type ExecutionContext,
@@ -9,11 +10,13 @@ import type { Request } from 'express';
 import {
   AuthUserSessionRejectedError,
   AuthUserUnavailableError,
+  AUTH_USER_SESSION_CLIENT,
   type AuthUserSessionClient,
 } from '../../application/ports/auth-user-session.js';
 import {
   JwtExpiredError,
   JwtVerificationError,
+  JWT_VERIFIER,
   type JwtClaims,
   type JwtVerifier,
 } from '../../application/ports/jwt-ports.js';
@@ -30,7 +33,9 @@ export type AuthenticatedRequest = Request & {
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
   constructor(
+    @Inject(JWT_VERIFIER)
     private readonly jwtVerifier: JwtVerifier,
+    @Inject(AUTH_USER_SESSION_CLIENT)
     private readonly authUserSessionClient: AuthUserSessionClient,
   ) {}
 

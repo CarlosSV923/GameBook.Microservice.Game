@@ -1,11 +1,12 @@
 import type { PrismaClient } from '../../../../src/infrastructure/persistence/prisma/generated/client.js';
 import { Favorite } from '../../../../src/domain/favorites/favorite.js';
+import { FavoriteAlreadyExistsError } from '../../../../src/application/errors/favorite-errors.js';
 import { PrismaFavoriteRepository } from '../../../../src/infrastructure/persistence/prisma/prisma-favorite-repository.js';
 
 describe('PrismaFavoriteRepository', () => {
   const favoriteDelegate = {
     findUnique: vi.fn(),
-    upsert: vi.fn(),
+    create: vi.fn(),
     count: vi.fn(),
     findMany: vi.fn(),
     deleteMany: vi.fn(),
@@ -65,14 +66,11 @@ describe('PrismaFavoriteRepository', () => {
     });
   });
 
-  it('upserts the snapshot and replaces its platforms atomically', async () => {
+  it('creates the snapshot and its platforms in one Prisma operation', async () => {
     await repository.save(favorite);
 
-    expect(favoriteDelegate.upsert).toHaveBeenCalledWith({
-      where: {
-        userId_igdbId: { userId: favorite.userId, igdbId: favorite.igdbId },
-      },
-      create: {
+    expect(favoriteDelegate.create).toHaveBeenCalledWith({
+      data: {
         userId: favorite.userId,
         igdbId: favorite.igdbId,
         name: favorite.name,
@@ -86,20 +84,15 @@ describe('PrismaFavoriteRepository', () => {
           ],
         },
       },
-      update: {
-        name: favorite.name,
-        released: favorite.released,
-        imageUrl: favorite.imageUrl,
-        rating: favorite.rating,
-        platforms: {
-          deleteMany: {},
-          create: [
-            { platformId: 6, name: 'PC' },
-            { platformId: 48, name: 'PlayStation 4' },
-          ],
-        },
-      },
     });
+  });
+
+  it('maps a database uniqueness race to the duplicate error', async () => {
+    favoriteDelegate.create.mockRejectedValue({ code: 'P2002' });
+
+    await expect(repository.save(favorite)).rejects.toBeInstanceOf(
+      FavoriteAlreadyExistsError,
+    );
   });
 
   it('combines filters, uses an inclusive year range, stable ordering, and bounded pagination', async () => {

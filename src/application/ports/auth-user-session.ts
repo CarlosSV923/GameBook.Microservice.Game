@@ -2,6 +2,8 @@ export interface AuthUserSession {
   readonly userId: string;
 }
 
+export const AUTH_USER_SESSION_CLIENT = Symbol('AUTH_USER_SESSION_CLIENT');
+
 export interface AuthUserSessionClient {
   validate(token: string): Promise<AuthUserSession>;
 }

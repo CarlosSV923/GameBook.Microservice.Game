@@ -1,18 +1,8 @@
 import { createPublicKey } from 'node:crypto';
 
-export const GAME_RUNTIME_CONFIG = Symbol('GAME_RUNTIME_CONFIG');
-
-export interface GameRuntimeConfig {
-  readonly databaseUrl: string;
-  readonly jwtPublicKey: string;
-  readonly jwtIssuer: string;
-  readonly jwtAudience: string;
-  readonly authUserUrl: string;
-}
-
-export function loadGameRuntimeConfig(
-  environment: NodeJS.ProcessEnv = process.env,
-): GameRuntimeConfig {
+export function validateGameEnvironment(
+  environment: Record<string, unknown>,
+): Record<string, unknown> {
   const databaseUrl = required(environment, 'GAME_DATABASE_URL');
   validateDatabaseUrl(databaseUrl);
 
@@ -23,22 +13,23 @@ export function loadGameRuntimeConfig(
   validateHttpUrl(authUserUrl, 'AUTHUSER_URL');
 
   return {
-    databaseUrl,
-    jwtPublicKey,
-    jwtIssuer: required(environment, 'JWT_ISSUER'),
-    jwtAudience: required(environment, 'JWT_AUDIENCE'),
-    authUserUrl,
+    ...environment,
+    GAME_DATABASE_URL: databaseUrl,
+    JWT_PUBLIC_KEY: jwtPublicKey,
+    JWT_ISSUER: required(environment, 'JWT_ISSUER'),
+    JWT_AUDIENCE: required(environment, 'JWT_AUDIENCE'),
+    AUTHUSER_URL: authUserUrl,
   };
 }
 
-function required(environment: NodeJS.ProcessEnv, name: string): string {
-  const value = environment[name]?.trim();
+function required(environment: Record<string, unknown>, name: string): string {
+  const value = environment[name];
 
-  if (!value) {
+  if (typeof value !== 'string' || !value.trim()) {
     throw new Error(`Missing required Game configuration: ${name}`);
   }
 
-  return value;
+  return value.trim();
 }
 
 function normalizePem(value: string): string {
