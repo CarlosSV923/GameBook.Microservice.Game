@@ -75,7 +75,12 @@ export class FavoritesController {
     try {
       const page = await this.listFavorites.execute({
         userId: authenticatedUserId(request),
-        ...query,
+        name: query.name,
+        platformId: query.platformId,
+        yearFrom: query.yearFrom,
+        yearTo: query.yearTo,
+        page: query.page,
+        pageSize: query.pageSize,
       });
 
       return {
