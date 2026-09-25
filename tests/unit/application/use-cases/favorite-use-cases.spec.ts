@@ -9,6 +9,7 @@ import { CreateFavoriteService } from '../../../../src/application/use-cases/cre
 import { DeleteFavoriteService } from '../../../../src/application/use-cases/delete-favorite.js';
 import { ListFavoritesService } from '../../../../src/application/use-cases/list-favorites.js';
 import { SuggestFavoritesService } from '../../../../src/application/use-cases/suggest-favorites.js';
+import { UpdateFavoriteSnapshotService } from '../../../../src/application/use-cases/update-favorite-snapshot.js';
 
 const favoriteInput = {
   userId: '7b7f3d2e-6d8d-4e8c-9e0c-2a96f2fb11aa',
@@ -142,6 +143,39 @@ describe('favorite use cases', () => {
       limit: 20,
     });
   });
+
+  it('updates only the authenticated subject snapshot', async () => {
+    const repository = createRepository();
+    repository.updateSnapshot.mockResolvedValue(Favorite.create(favoriteInput));
+    const service = new UpdateFavoriteSnapshotService(repository);
+
+    await expect(
+      service.execute({
+        userId: favoriteInput.userId,
+        igdbId: favoriteInput.igdbId,
+        snapshot: { rating: null, platforms: [] },
+      }),
+    ).resolves.toEqual(Favorite.create(favoriteInput));
+    expect(repository.updateSnapshot).toHaveBeenCalledWith(
+      favoriteInput.userId,
+      favoriteInput.igdbId,
+      { rating: null, platforms: [] },
+    );
+  });
+
+  it('reports a missing own favorite when updating the snapshot', async () => {
+    const repository = createRepository();
+    repository.updateSnapshot.mockResolvedValue(null);
+    const service = new UpdateFavoriteSnapshotService(repository);
+
+    await expect(
+      service.execute({
+        userId: favoriteInput.userId,
+        igdbId: favoriteInput.igdbId,
+        snapshot: { name: 'Updated Game' },
+      }),
+    ).rejects.toBeInstanceOf(FavoriteNotFoundError);
+  });
 });
 
 function createRepository(): FavoriteRepository & {
@@ -149,17 +183,20 @@ function createRepository(): FavoriteRepository & {
   delete: ReturnType<typeof vi.fn>;
   list: ReturnType<typeof vi.fn>;
   suggest: ReturnType<typeof vi.fn>;
+  updateSnapshot: ReturnType<typeof vi.fn>;
 } {
   return {
     findByIdentity: vi.fn(),
     save: vi.fn(),
     list: vi.fn(),
     suggest: vi.fn(),
+    updateSnapshot: vi.fn(),
     delete: vi.fn(),
   } as unknown as FavoriteRepository & {
     save: ReturnType<typeof vi.fn>;
     delete: ReturnType<typeof vi.fn>;
     list: ReturnType<typeof vi.fn>;
     suggest: ReturnType<typeof vi.fn>;
+    updateSnapshot: ReturnType<typeof vi.fn>;
   };
 }

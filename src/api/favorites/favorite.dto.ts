@@ -127,3 +127,33 @@ export class SuggestFavoritesQueryDto {
   @Max(20)
   limit?: number;
 }
+
+export class UpdateFavoriteSnapshotDto {
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(200)
+  name?: string;
+
+  @IsOptional()
+  @IsDateString()
+  @Matches(/^\d{4}-\d{2}-\d{2}$/u)
+  released?: string | null;
+
+  @IsOptional()
+  @IsUrl({ protocols: ['https'], require_protocol: true })
+  imageUrl?: string | null;
+
+  @IsOptional()
+  @IsNumber({ allowInfinity: false, allowNaN: false })
+  @Min(0)
+  @Max(100)
+  rating?: number | null;
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @ArrayUnique((platform: FavoritePlatformDto) => platform.id)
+  @Type(() => FavoritePlatformDto)
+  platforms?: FavoritePlatformDto[];
+}
