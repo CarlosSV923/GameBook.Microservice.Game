@@ -80,6 +80,12 @@ pnpm typecheck
 pnpm build
 ```
 
+## Política de release y despliegue
+
+Los commits siguen Conventional Commits. El workflow `release-please` se ejecuta únicamente con pushes a `main` o mediante ejecución manual, usa los archivos manifest del repositorio y se autentica con los permisos mínimos de `GITHUB_TOKEN` necesarios para crear pull requests de release y releases de GitHub. El CI normal valida los pull requests y `main`; el commit del release se valida mediante CI después de fusionar el pull request de release.
+
+`vercel.json` deshabilita los deployments automáticos de Git para cualquier rama excepto `main`. En esta etapa este repositorio no crea proyectos ni deployments de producción en Vercel.
+
 ## Proyectos relacionados
 
 - [GameBook.Microservice.AuthUser](https://github.com/CarlosSV923/GameBook.Microservice.AuthUser)
