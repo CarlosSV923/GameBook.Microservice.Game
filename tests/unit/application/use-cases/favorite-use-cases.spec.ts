@@ -3,9 +3,11 @@ import type { FavoriteRepository } from '../../../../src/domain/favorites/favori
 import {
   FavoriteAlreadyExistsError,
   FavoriteNotFoundError,
+  FavoriteYearRangeInvalidError,
 } from '../../../../src/application/errors/favorite-errors.js';
 import { CreateFavoriteService } from '../../../../src/application/use-cases/create-favorite.js';
 import { DeleteFavoriteService } from '../../../../src/application/use-cases/delete-favorite.js';
+import { ListFavoritesService } from '../../../../src/application/use-cases/list-favorites.js';
 
 const favoriteInput = {
   userId: '7b7f3d2e-6d8d-4e8c-9e0c-2a96f2fb11aa',
@@ -71,11 +73,58 @@ describe('favorite use cases', () => {
       favoriteInput.igdbId,
     );
   });
+
+  it('lists only the authenticated subject with the requested filters', async () => {
+    const repository = createRepository();
+    repository.list.mockResolvedValue({
+      items: [Favorite.create(favoriteInput)],
+      page: 2,
+      pageSize: 20,
+      total: 21,
+      hasNext: false,
+    });
+    const service = new ListFavoritesService(repository);
+
+    await expect(
+      service.execute({
+        userId: favoriteInput.userId,
+        name: ' grand ',
+        platformId: 6,
+        yearFrom: 2013,
+        yearTo: 2020,
+        page: 2,
+        pageSize: 20,
+      }),
+    ).resolves.toMatchObject({ page: 2, total: 21 });
+    expect(repository.list).toHaveBeenCalledWith(favoriteInput.userId, {
+      name: ' grand ',
+      platformId: 6,
+      yearFrom: 2013,
+      yearTo: 2020,
+      page: 2,
+      pageSize: 20,
+    });
+  });
+
+  it('rejects an inverted year range before querying the repository', async () => {
+    const repository = createRepository();
+    const service = new ListFavoritesService(repository);
+
+    await expect(
+      service.execute({
+        userId: favoriteInput.userId,
+        yearFrom: 2020,
+        yearTo: 2013,
+      }),
+    ).rejects.toBeInstanceOf(FavoriteYearRangeInvalidError);
+    expect(repository.list).not.toHaveBeenCalled();
+  });
 });
 
 function createRepository(): FavoriteRepository & {
   save: ReturnType<typeof vi.fn>;
   delete: ReturnType<typeof vi.fn>;
+  list: ReturnType<typeof vi.fn>;
 } {
   return {
     findByIdentity: vi.fn(),
@@ -86,5 +135,6 @@ function createRepository(): FavoriteRepository & {
   } as unknown as FavoriteRepository & {
     save: ReturnType<typeof vi.fn>;
     delete: ReturnType<typeof vi.fn>;
+    list: ReturnType<typeof vi.fn>;
   };
 }
