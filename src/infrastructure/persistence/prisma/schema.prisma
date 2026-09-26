@@ -1,0 +1,37 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "./generated"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+  schemas  = ["game"]
+}
+
+model Favorite {
+  userId    String             @db.Uuid
+  igdbId    Int
+  name      String             @db.Text
+  released  DateTime?          @db.Date
+  imageUrl  String?            @db.Text
+  rating    Decimal?           @db.Decimal(5, 2)
+  platforms FavoritePlatform[]
+
+  @@id([userId, igdbId])
+  @@index([userId, name, igdbId])
+  @@index([userId, released, igdbId])
+  @@schema("game")
+}
+
+model FavoritePlatform {
+  userId     String   @db.Uuid
+  igdbId     Int
+  platformId Int
+  name       String   @db.Text
+  favorite   Favorite @relation(fields: [userId, igdbId], references: [userId, igdbId], onDelete: Cascade)
+
+  @@id([userId, igdbId, platformId])
+  @@index([userId, platformId, igdbId])
+  @@schema("game")
+}

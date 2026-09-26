@@ -1,0 +1,122 @@
+name: Game database migrations
+
+on:
+  push:
+    branches:
+      - develop
+    paths:
+      - .github/workflows/migrate-game.yml
+      - package.json
+      - pnpm-lock.yaml
+      - pnpm-workspace.yaml
+      - src/infrastructure/persistence/prisma/prisma.config.ts
+      - src/infrastructure/persistence/prisma/schema.prisma
+      - src/infrastructure/persistence/prisma/migrations/**
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: game-migrations-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  migrate:
+    name: migrate-game-${{ github.ref_name }}
+    if: >-
+      (github.event_name == 'push' && github.ref == 'refs/heads/develop') ||
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'develop' }}
+    env:
+      GAME_DATABASE_DIRECT_URL: ${{ secrets.GAME_DATABASE_DIRECT_URL }}
+      GAME_MIGRATION_NAME: 20260924040000_init_game_favorites
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 12.4.1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate migration inputs
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ -z "${GAME_DATABASE_DIRECT_URL:-}" ]]; then
+            echo "::error::GAME_DATABASE_DIRECT_URL is not configured in the selected GitHub environment."
+            exit 1
+          fi
+
+          migration_user="$(node --input-type=module -e "const url = new URL(process.env.GAME_DATABASE_DIRECT_URL); process.stdout.write(decodeURIComponent(url.username));")"
+          if [[ "$migration_user" != "gamebook_game_migrator_limited" ]]; then
+            echo "::error::GAME_DATABASE_DIRECT_URL must use gamebook_game_migrator_limited."
+            exit 1
+          fi
+
+          migration_schema="$(node --input-type=module -e "const url = new URL(process.env.GAME_DATABASE_DIRECT_URL); process.stdout.write(url.searchParams.get('schema') ?? '');")"
+          if [[ -n "$migration_schema" && "$migration_schema" != "game" ]]; then
+            echo "::error::GAME_DATABASE_DIRECT_URL cannot target a schema other than game."
+            exit 1
+          fi
+
+          test -f src/infrastructure/persistence/prisma/migrations/migration_lock.toml
+          test -n "$(find src/infrastructure/persistence/prisma/migrations -mindepth 2 -maxdepth 2 -type f -name migration.sql -print -quit)"
+
+      - name: Validate Prisma schema
+        run: pnpm db:validate
+
+      - name: Recover failed Game migration
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          failed_migration="$(
+            node --input-type=module <<'NODE'
+          import pg from 'pg';
+
+          const pool = new pg.Pool({
+            connectionString: process.env.GAME_DATABASE_DIRECT_URL,
+          });
+
+          try {
+            const result = await pool.query(
+              `SELECT 1
+               FROM public."_prisma_migrations"
+               WHERE migration_name = $1
+                 AND finished_at IS NULL
+                 AND rolled_back_at IS NULL
+               LIMIT 1`,
+              [process.env.GAME_MIGRATION_NAME],
+            );
+
+            process.stdout.write(result.rowCount === 1 ? 'true' : 'false');
+          } finally {
+            await pool.end();
+          }
+          NODE
+          )"
+
+          if [[ "$failed_migration" == "true" ]]; then
+            pnpm exec prisma migrate resolve \
+              --rolled-back "$GAME_MIGRATION_NAME" \
+              --config ./src/infrastructure/persistence/prisma/prisma.config.ts
+          fi
+
+      - name: Apply Game migrations
+        run: pnpm db:migrate:deploy
+
+      - name: Verify migration idempotence
+        run: pnpm db:migrate:deploy
