@@ -41,6 +41,7 @@ describe('AuthUserSessionClient', () => {
     'TOKEN_INVALID',
     'TOKEN_EXPIRED',
     'SESSION_REVOKED',
+    'ACCOUNT_DISABLED',
   ])('preserves the stable AuthUser 401 code: %s', async (code) => {
     const httpService = createHttpService();
     httpService.get.mockReturnValue(of({ status: 401, data: { code } }));

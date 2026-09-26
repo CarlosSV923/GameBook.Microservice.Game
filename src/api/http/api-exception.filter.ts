@@ -26,6 +26,7 @@ const publicMessages: Record<string, string> = {
   TOKEN_INVALID: 'Authentication is not valid.',
   TOKEN_EXPIRED: 'Authentication has expired.',
   SESSION_REVOKED: 'Authentication is no longer valid.',
+  ACCOUNT_DISABLED: 'The account is disabled.',
   FAVORITE_NOT_FOUND: 'Favorite not found.',
   FAVORITE_ALREADY_EXISTS: 'The game is already in your favorites.',
   AUTHUSER_UNAVAILABLE: 'Authentication service is temporarily unavailable.',

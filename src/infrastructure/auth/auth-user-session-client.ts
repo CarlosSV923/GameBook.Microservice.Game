@@ -15,6 +15,7 @@ const SESSION_ERROR_CODES = new Set<AuthUserSessionErrorCode>([
   'TOKEN_INVALID',
   'TOKEN_EXPIRED',
   'SESSION_REVOKED',
+  'ACCOUNT_DISABLED',
 ]);
 
 export class AuthUserSessionClient implements AuthUserSessionClientPort {

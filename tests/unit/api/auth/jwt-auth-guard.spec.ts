@@ -75,6 +75,16 @@ describe('JwtAuthGuard', () => {
     });
 
     sessionClient.validate.mockRejectedValueOnce(
+      new AuthUserSessionRejectedError('ACCOUNT_DISABLED'),
+    );
+    await expect(
+      guard.canActivate(createContext(createRequest('Bearer disabled'))),
+    ).rejects.toMatchObject({
+      status: 401,
+      response: { code: 'ACCOUNT_DISABLED' },
+    });
+
+    sessionClient.validate.mockRejectedValueOnce(
       new AuthUserUnavailableError(),
     );
     await expect(
