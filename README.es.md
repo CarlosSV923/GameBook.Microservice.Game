@@ -59,7 +59,7 @@ Game escucha por defecto en el puerto local 3002.
 
 ## Despliegue de producción
 
-Game está desplegado en Render. La URL del servicio de producción se configura en la plataforma; Swagger UI está disponible en `/docs` y el documento OpenAPI en `/docs/openapi.json`.
+Game está desplegado en Render en [`https://gamebook-microservice-game.onrender.com`](https://gamebook-microservice-game.onrender.com). Swagger UI está disponible en [`/docs`](https://gamebook-microservice-game.onrender.com/docs) y el documento OpenAPI en [`/docs/openapi.json`](https://gamebook-microservice-game.onrender.com/docs/openapi.json). La dependencia productiva AuthUser es [`https://gamebook-microservice-authuser.onrender.com`](https://gamebook-microservice-authuser.onrender.com), y el origen del frontend es [`https://gamebook-frontend.vercel.app`](https://gamebook-frontend.vercel.app).
 
 Configura estas variables runtime en Render sin confirmar sus valores:
 
