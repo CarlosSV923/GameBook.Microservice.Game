@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.1.1](https://github.com/CarlosSV923/GameBook.Microservice.Game/compare/gamebook-microservice-game-v0.1.0...gamebook-microservice-game-v0.1.1) (2026-09-26)
+
+
+### Bug Fixes
+
+* **game:** handle empty migration history ([768ff6e](https://github.com/CarlosSV923/GameBook.Microservice.Game/commit/768ff6e314b5b62ecb28142a1e76da51f8a3eebd))
+* **game:** handle empty migration history ([0d99cdb](https://github.com/CarlosSV923/GameBook.Microservice.Game/commit/0d99cdb6a58ca18694fb89b89bfd4870df3c854c))
+* **game:** promote migration recovery fix ([a5b5e50](https://github.com/CarlosSV923/GameBook.Microservice.Game/commit/a5b5e50833ec7b5426463788392d300ff2d1855f))
+
 ## [0.1.0](https://github.com/CarlosSV923/GameBook.Microservice.Game/compare/gamebook-microservice-game-v0.0.1...gamebook-microservice-game-v0.1.0) (2026-09-26)
 
 
