@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.0](https://github.com/CarlosSV923/GameBook.Microservice.Game/compare/gamebook-microservice-game-v0.1.2...gamebook-microservice-game-v0.2.0) (2026-09-26)
+
+
+### Features
+
+* reject disabled account sessions ([d408e62](https://github.com/CarlosSV923/GameBook.Microservice.Game/commit/d408e620bf71c50f6cd00315c6e6402547369f75))
+* reject disabled account sessions ([c7c7229](https://github.com/CarlosSV923/GameBook.Microservice.Game/commit/c7c7229b8d2aae6991a5cc068e043280bb1216f5))
+
 ## [0.1.2](https://github.com/CarlosSV923/GameBook.Microservice.Game/compare/gamebook-microservice-game-v0.1.1...gamebook-microservice-game-v0.1.2) (2026-09-26)
 
 
