@@ -9,7 +9,11 @@ export interface AuthUserSessionClient {
 }
 
 export type AuthUserSessionErrorCode =
-  'TOKEN_MISSING' | 'TOKEN_INVALID' | 'TOKEN_EXPIRED' | 'SESSION_REVOKED';
+  | 'TOKEN_MISSING'
+  | 'TOKEN_INVALID'
+  | 'TOKEN_EXPIRED'
+  | 'SESSION_REVOKED'
+  | 'ACCOUNT_DISABLED';
 
 export class AuthUserSessionRejectedError extends Error {
   constructor(readonly code: AuthUserSessionErrorCode) {

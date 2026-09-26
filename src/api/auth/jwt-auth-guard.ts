@@ -101,7 +101,12 @@ function extractBearerToken(authorization: string | undefined): string | null {
 }
 
 function authenticationError(
-  code: 'TOKEN_MISSING' | 'TOKEN_INVALID' | 'TOKEN_EXPIRED' | 'SESSION_REVOKED',
+  code:
+    | 'TOKEN_MISSING'
+    | 'TOKEN_INVALID'
+    | 'TOKEN_EXPIRED'
+    | 'SESSION_REVOKED'
+    | 'ACCOUNT_DISABLED',
 ): HttpException {
   return new HttpException({ code }, HttpStatus.UNAUTHORIZED);
 }
