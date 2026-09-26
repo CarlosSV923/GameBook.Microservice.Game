@@ -1,4 +1,4 @@
-import { defineConfig, env } from 'prisma/config';
+import { defineConfig } from 'prisma/config';
 
 export default defineConfig({
   schema: 'schema.prisma',
@@ -6,6 +6,6 @@ export default defineConfig({
     path: 'migrations',
   },
   datasource: {
-    url: env('GAME_DATABASE_DIRECT_URL'),
+    url: process.env.GAME_DATABASE_DIRECT_URL ?? process.env.GAME_DATABASE_URL,
   },
 });
