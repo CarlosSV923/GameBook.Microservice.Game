@@ -59,7 +59,7 @@ Game listens on local port 3002 by default.
 
 ## Production deployment
 
-Game is deployed on Render. The production service URL is configured by the deployment platform; Swagger UI is available at `/docs` and the OpenAPI document at `/docs/openapi.json`.
+Game is deployed on Render at [`https://gamebook-microservice-game.onrender.com`](https://gamebook-microservice-game.onrender.com). Swagger UI is available at [`/docs`](https://gamebook-microservice-game.onrender.com/docs) and the OpenAPI document at [`/docs/openapi.json`](https://gamebook-microservice-game.onrender.com/docs/openapi.json). The production AuthUser dependency is [`https://gamebook-microservice-authuser.onrender.com`](https://gamebook-microservice-authuser.onrender.com), and the frontend origin is [`https://gamebook-frontend.vercel.app`](https://gamebook-frontend.vercel.app).
 
 Configure these runtime variables in Render without committing their values:
 
