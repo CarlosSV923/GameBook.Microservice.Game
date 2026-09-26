@@ -57,6 +57,23 @@ pnpm start:dev
 
 Game listens on local port 3002 by default.
 
+## Production deployment
+
+Game is deployed on Render. The production service URL is configured by the deployment platform; Swagger UI is available at `/docs` and the OpenAPI document at `/docs/openapi.json`.
+
+Configure these runtime variables in Render without committing their values:
+
+```dotenv
+GAME_DATABASE_URL=
+JWT_PUBLIC_KEY=
+JWT_ISSUER=
+JWT_AUDIENCE=
+AUTHUSER_URL=
+CORS_ALLOWED_ORIGINS=
+```
+
+`GAME_DATABASE_DIRECT_URL` is migration-only and remains restricted to controlled Prisma commands and GitHub Actions. It must not be configured in Render. `AUTHUSER_URL` must point to the deployed AuthUser base URL without the `/v1` suffix.
+
 ## Local endpoints and behavior
 
 | Resource | URL |
@@ -84,7 +101,7 @@ pnpm build
 
 Commits follow Conventional Commits. The `release-please` workflow runs only on `main` pushes or a manual dispatch, uses the manifest files in the repository, and authenticates with the minimum `GITHUB_TOKEN` permissions required to create release pull requests and GitHub releases. The regular CI validates pull requests and `main`; the release commit is validated by CI after the release pull request is merged.
 
-`vercel.json` disables automatic Git deployments for every branch except `main`. No Vercel project or production deployment is created by this repository at this stage.
+Production deployment is managed through Render. The repository does not contain provider-specific deployment configuration.
 
 ## Related projects
 
