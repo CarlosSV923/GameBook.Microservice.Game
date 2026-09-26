@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.1.2](https://github.com/CarlosSV923/GameBook.Microservice.Game/compare/gamebook-microservice-game-v0.1.1...gamebook-microservice-game-v0.1.2) (2026-09-26)
+
+
+### Bug Fixes
+
+* **game:** generate prisma client during build ([55513a8](https://github.com/CarlosSV923/GameBook.Microservice.Game/commit/55513a8606e2120973058dc939f52d6037c239b7))
+* **game:** generate Prisma client during build ([f54572d](https://github.com/CarlosSV923/GameBook.Microservice.Game/commit/f54572d78cfdcdce24458fc2a99241814463eb45))
+* **game:** support runtime database url in prisma config ([a66589e](https://github.com/CarlosSV923/GameBook.Microservice.Game/commit/a66589e8dcce8e71b8fd82677996b8a20814986d))
+
 ## [0.1.1](https://github.com/CarlosSV923/GameBook.Microservice.Game/compare/gamebook-microservice-game-v0.1.0...gamebook-microservice-game-v0.1.1) (2026-09-26)
 
 
