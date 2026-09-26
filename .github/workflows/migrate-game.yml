@@ -92,17 +92,25 @@ jobs:
           });
 
           try {
-            const result = await pool.query(
-              `SELECT 1
-               FROM public."_prisma_migrations"
-               WHERE migration_name = $1
-                 AND finished_at IS NULL
-                 AND rolled_back_at IS NULL
-               LIMIT 1`,
-              [process.env.GAME_MIGRATION_NAME],
+            const table = await pool.query(
+              `SELECT to_regclass('public."_prisma_migrations"') AS migration_table`,
             );
 
-            process.stdout.write(result.rowCount === 1 ? 'true' : 'false');
+            if (!table.rows[0]?.migration_table) {
+              process.stdout.write('false');
+            } else {
+              const result = await pool.query(
+                `SELECT 1
+                 FROM public."_prisma_migrations"
+                 WHERE migration_name = $1
+                   AND finished_at IS NULL
+                   AND rolled_back_at IS NULL
+                 LIMIT 1`,
+                [process.env.GAME_MIGRATION_NAME],
+              );
+
+              process.stdout.write(result.rowCount === 1 ? 'true' : 'false');
+            }
           } finally {
             await pool.end();
           }
