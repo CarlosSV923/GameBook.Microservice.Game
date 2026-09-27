@@ -242,6 +242,10 @@ describe('Game authenticated favorite flow', () => {
         description: 'Local development server for GameBook.Microservice.Game.',
       },
     ]);
+    expect(response.body.paths['/health'].get.operationId).toBe(
+      'getGameHealth',
+    );
+    expect(response.body.paths['/health'].get.security).toBeUndefined();
     expect(response.body.components.securitySchemes.BearerAuth).toMatchObject({
       type: 'http',
       scheme: 'bearer',
@@ -277,6 +281,13 @@ describe('Game authenticated favorite flow', () => {
     expect(JSON.stringify(response.body)).not.toMatch(
       /PRIVATE KEY|client_secret|access_token:|Bearer ey/u,
     );
+  });
+
+  it('exposes a public healthcheck with HTTP 200', async () => {
+    await request(app.getHttpServer())
+      .get('/health')
+      .expect(200)
+      .expect({ status: 'ok' });
   });
 
   it('accepts a valid JWT, persists a favorite, and isolates it by UUID', async () => {
