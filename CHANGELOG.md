@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/CarlosSV923/GameBook.Microservice.Game/compare/gamebook-microservice-game-v0.2.0...gamebook-microservice-game-v0.3.0) (2026-09-27)
+
+
+### Features
+
+* add Game healthcheck endpoint ([e317084](https://github.com/CarlosSV923/GameBook.Microservice.Game/commit/e3170845d8e7b0d46c9d12af3ad30a9fe7bb632e))
+
 ## [0.2.0](https://github.com/CarlosSV923/GameBook.Microservice.Game/compare/gamebook-microservice-game-v0.1.2...gamebook-microservice-game-v0.2.0) (2026-09-26)
 
 
