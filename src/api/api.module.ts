@@ -4,6 +4,7 @@ import { ApplicationModule } from '../application/application.module.js';
 import { InfrastructureModule } from '../infrastructure/infrastructure.module.js';
 import { JwtAuthGuard } from './auth/jwt-auth-guard.js';
 import { FavoritesController } from './favorites/favorites.controller.js';
+import { HealthController } from './health/health.controller.js';
 import { ApiExceptionFilter } from './http/api-exception.filter.js';
 import { RequestIdMiddleware } from './http/request-id.js';
 import { RequestLoggingMiddleware } from './http/request-logging.middleware.js';
@@ -11,7 +12,7 @@ import { createValidationPipe } from './http/validation-pipe.js';
 
 @Module({
   imports: [ApplicationModule, InfrastructureModule],
-  controllers: [FavoritesController],
+  controllers: [FavoritesController, HealthController],
   providers: [
     JwtAuthGuard,
     { provide: APP_FILTER, useClass: ApiExceptionFilter },
