@@ -1,0 +1,171 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Arquitectura de GameBook Game",
+    "output": "GameBook.Microservice.Game-architecture-es.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/CarlosSV923/GameBook.Microservice.Game",
+      "provider": "github",
+      "link_mode": "web",
+      "revision": "c0ce96a7be59c5cec37607754eae3552f77c8ce7"
+    },
+    "views": [
+      {
+        "id": "favorite-path",
+        "label": "Ruta de favoritos",
+        "focus": ["frontend", "api", "application", "domain", "prisma", "postgres"],
+        "note": "Sigue la creación, listado, sugerencias, snapshots y eliminación de favoritos hasta la persistencia."
+      },
+      {
+        "id": "session-security",
+        "label": "Seguridad de sesión",
+        "focus": ["api", "jwt", "authuser", "application", "config"],
+        "note": "Observa la verificación local del JWT y la validación de sesión contra AuthUser antes de las operaciones protegidas."
+      },
+      {
+        "id": "operations",
+        "label": "Operación y documentación",
+        "focus": ["frontend", "api", "health", "openapi", "config"],
+        "note": "Inspecciona los puntos de healthcheck y OpenAPI expuestos por el servicio."
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "frontend",
+      "type": "external",
+      "label": "GameBook Frontend",
+      "sublabel": "Cliente Next.js",
+      "pos": [40, 300],
+      "size": [170, 72],
+      "sources": [{ "path": "README.es.md", "label": "consumidor" }]
+    },
+    {
+      "id": "api",
+      "type": "backend",
+      "label": "API Game",
+      "sublabel": "Frontera HTTP NestJS",
+      "tag": "/v1/favorites",
+      "pos": [250, 300],
+      "size": [170, 82],
+      "sources": [{ "path": "src/api/api.module.ts", "label": "rutas" }]
+    },
+    {
+      "id": "application",
+      "type": "backend",
+      "label": "Casos de uso de favoritos",
+      "sublabel": "Crear · Listar · Eliminar",
+      "tag": "Sugerir + snapshot",
+      "pos": [460, 300],
+      "size": [190, 82],
+      "sources": [{ "path": "src/application/use-cases/list-favorites.ts", "label": "orquestación" }]
+    },
+    {
+      "id": "domain",
+      "type": "backend",
+      "label": "Dominio de favoritos",
+      "sublabel": "Juego · plataforma · snapshot",
+      "pos": [690, 300],
+      "size": [170, 82],
+      "sources": [{ "path": "src/domain/favorites/favorite.ts", "label": "invariantes" }]
+    },
+    {
+      "id": "prisma",
+      "type": "backend",
+      "label": "Repositorio Prisma",
+      "sublabel": "Adaptador de persistencia",
+      "tag": "esquema game",
+      "pos": [910, 300],
+      "size": [180, 82],
+      "sources": [{ "path": "src/infrastructure/persistence/prisma/prisma-favorite-repository.ts", "label": "adaptador" }]
+    },
+    {
+      "id": "postgres",
+      "type": "database",
+      "label": "PostgreSQL",
+      "sublabel": "Neon · esquema game",
+      "pos": [1130, 300],
+      "size": [170, 82],
+      "sources": [{ "path": "src/infrastructure/persistence/prisma/schema.prisma", "label": "persistencia" }]
+    },
+    {
+      "id": "jwt",
+      "type": "security",
+      "label": "Guard JWT",
+      "sublabel": "Verificación RS256",
+      "pos": [460, 120],
+      "size": [190, 76],
+      "sources": [{ "path": "src/api/auth/jwt-auth-guard.ts", "label": "seguridad" }]
+    },
+    {
+      "id": "authuser",
+      "type": "external",
+      "label": "AuthUser",
+      "sublabel": "Validación de sesión",
+      "tag": "GET /v1/auth/session",
+      "pos": [690, 120],
+      "size": [190, 76],
+      "sources": [{ "path": "src/infrastructure/auth/auth-user-session-client.ts", "label": "integración" }]
+    },
+    {
+      "id": "config",
+      "type": "security",
+      "label": "Configuración de ejecución",
+      "sublabel": "Validación de entorno",
+      "tag": "claves · orígenes · base de datos",
+      "pos": [910, 120],
+      "size": [180, 76],
+      "sources": [{ "path": "src/infrastructure/config/game-runtime-config.ts", "label": "configuración" }]
+    },
+    {
+      "id": "health",
+      "type": "backend",
+      "label": "Healthcheck",
+      "sublabel": "GET /health → 200",
+      "pos": [250, 510],
+      "size": [170, 72],
+      "sources": [{ "path": "src/api/health/health.controller.ts", "label": "operación" }]
+    },
+    {
+      "id": "openapi",
+      "type": "backend",
+      "label": "OpenAPI / Swagger",
+      "sublabel": "GET /docs · /docs/openapi.json",
+      "pos": [460, 510],
+      "size": [210, 72],
+      "sources": [{ "path": "src/api/openapi/configure-swagger.ts", "label": "documentación" }]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Servicio GameBook.Game",
+      "wraps": ["api", "application", "domain", "prisma", "jwt", "config", "health", "openapi"],
+      "pad": 28
+    },
+    {
+      "kind": "security-group",
+      "label": "Operaciones de favoritos protegidas",
+      "wraps": ["api", "application", "jwt"],
+      "pad": 18
+    }
+  ],
+  "connections": [
+    { "id": "frontend-api", "from": "frontend", "to": "api", "label": "HTTP + Bearer JWT", "variant": "emphasis", "labelDy": -30 },
+    { "id": "api-application", "from": "api", "to": "application", "label": "comandos validados", "labelDy": -35 },
+    { "id": "application-domain", "from": "application", "to": "domain", "label": "aplicar reglas de favoritos", "labelDy": -35 },
+    { "id": "domain-prisma", "from": "domain", "to": "prisma", "label": "puerto de repositorio", "variant": "dashed", "labelDy": -35 },
+    { "id": "prisma-postgres", "from": "prisma", "to": "postgres", "label": "SQL · esquema game", "labelDy": -35 },
+    { "id": "api-jwt", "from": "api", "to": "jwt", "label": "verificar RS256", "variant": "security", "fromSide": "top", "toSide": "bottom", "labelDy": 26 },
+    { "id": "api-authuser", "from": "api", "to": "authuser", "label": "validar sesión", "variant": "security", "fromSide": "top", "toSide": "bottom", "labelDy": 26 },
+    { "id": "api-health", "from": "api", "to": "health", "variant": "dashed", "fromSide": "bottom", "toSide": "top" },
+    { "id": "api-openapi", "from": "api", "to": "openapi", "label": "contrato de API", "variant": "dashed", "fromSide": "bottom", "toSide": "top", "labelDy": 54 }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "Ruta de favoritos", "items": ["NestJS transforma solicitudes HTTP en casos de uso de favoritos", "Las reglas de dominio normalizan juego, plataforma y snapshot", "Prisma persiste favoritos en el esquema game aislado"] },
+    { "dot": "rose", "title": "Seguridad de sesión", "items": ["El guard verifica el JWT de AuthUser con RS256", "Las operaciones protegidas validan la sesión actual con AuthUser", "Las claves y la base de datos permanecen en configuración validada"] },
+    { "dot": "emerald", "title": "Operación", "items": ["GET /health devuelve HTTP 200 para healthchecks", "Swagger UI y OpenAPI JSON describen el contrato del servicio"] }
+  ]
+}
