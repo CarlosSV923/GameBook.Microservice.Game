@@ -2,16 +2,16 @@ import type { ExecutionContext } from '@nestjs/common';
 import {
   AuthUserSessionRejectedError,
   AuthUserUnavailableError,
-} from '../../../../src/application/ports/auth-user-session.js';
+} from '../../../../src/application/ports/auth-user-session.ts';
 import {
   JwtExpiredError,
   JwtVerificationError,
   type JwtClaims,
-} from '../../../../src/application/ports/jwt-ports.js';
+} from '../../../../src/application/ports/jwt-ports.ts';
 import {
   JwtAuthGuard,
   type AuthenticatedRequest,
-} from '../../../../src/api/auth/jwt-auth-guard.js';
+} from '../../../../src/api/auth/jwt-auth-guard.ts';
 
 const claims: JwtClaims = {
   sub: '7b7f3d2e-6d8d-4e8c-9e0c-2a96f2fb11aa',

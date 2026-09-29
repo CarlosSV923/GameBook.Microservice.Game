@@ -1,14 +1,14 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { APP_FILTER, APP_PIPE } from '@nestjs/core';
-import { ApplicationModule } from '../application/application.module.js';
-import { InfrastructureModule } from '../infrastructure/infrastructure.module.js';
-import { JwtAuthGuard } from './auth/jwt-auth-guard.js';
-import { FavoritesController } from './favorites/favorites.controller.js';
-import { HealthController } from './health/health.controller.js';
-import { ApiExceptionFilter } from './http/api-exception.filter.js';
-import { RequestIdMiddleware } from './http/request-id.js';
-import { RequestLoggingMiddleware } from './http/request-logging.middleware.js';
-import { createValidationPipe } from './http/validation-pipe.js';
+import { ApplicationModule } from '../application/application.module.ts';
+import { InfrastructureModule } from '../infrastructure/infrastructure.module.ts';
+import { JwtAuthGuard } from './auth/jwt-auth-guard.ts';
+import { FavoritesController } from './favorites/favorites.controller.ts';
+import { HealthController } from './health/health.controller.ts';
+import { ApiExceptionFilter } from './http/api-exception.filter.ts';
+import { RequestIdMiddleware } from './http/request-id.ts';
+import { RequestLoggingMiddleware } from './http/request-logging.middleware.ts';
+import { createValidationPipe } from './http/validation-pipe.ts';
 
 @Module({
   imports: [ApplicationModule, InfrastructureModule],

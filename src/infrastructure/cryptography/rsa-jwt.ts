@@ -2,11 +2,11 @@ import { createPublicKey, createVerify, type KeyObject } from 'node:crypto';
 import type {
   JwtClaims,
   JwtVerifier,
-} from '../../application/ports/jwt-ports.js';
+} from '../../application/ports/jwt-ports.ts';
 import {
   JwtExpiredError as JwtExpiredErrorClass,
   JwtVerificationError,
-} from '../../application/ports/jwt-ports.js';
+} from '../../application/ports/jwt-ports.ts';
 
 const JWT_HEADER = { alg: 'RS256', typ: 'JWT' } as const;
 const UUID_PATTERN =

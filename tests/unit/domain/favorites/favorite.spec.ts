@@ -1,5 +1,5 @@
-import { DomainValidationError } from '../../../../src/domain/shared/domain-validation-error.js';
-import { Favorite } from '../../../../src/domain/favorites/favorite.js';
+import { DomainValidationError } from '../../../../src/domain/shared/domain-validation-error.ts';
+import { Favorite } from '../../../../src/domain/favorites/favorite.ts';
 
 const favoriteInput = {
   userId: '7b7f3d2e-6d8d-4e8c-9e0c-2a96f2fb11aa',

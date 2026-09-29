@@ -2,9 +2,9 @@ import { Inject, Injectable } from '@nestjs/common';
 import {
   FAVORITE_REPOSITORY,
   type CreateFavoriteUseCase,
-} from '../ports/favorite-use-cases.js';
-import { Favorite, type NewFavorite } from '../../domain/favorites/favorite.js';
-import type { FavoriteRepository } from '../../domain/favorites/favorite-repository.js';
+} from '../ports/favorite-use-cases.ts';
+import { Favorite, type NewFavorite } from '../../domain/favorites/favorite.ts';
+import type { FavoriteRepository } from '../../domain/favorites/favorite-repository.ts';
 
 @Injectable()
 export class CreateFavoriteService implements CreateFavoriteUseCase {

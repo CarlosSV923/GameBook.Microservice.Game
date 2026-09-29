@@ -1,15 +1,15 @@
 import { HttpModule, HttpService } from '@nestjs/axios';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { AUTH_USER_SESSION_CLIENT } from '../application/ports/auth-user-session.js';
-import { FAVORITE_REPOSITORY } from '../application/ports/favorite-use-cases.js';
-import { JWT_VERIFIER } from '../application/ports/jwt-ports.js';
-import { AuthUserSessionClient } from './auth/auth-user-session-client.js';
-import { validateGameEnvironment } from './config/game-runtime-config.js';
-import { RsaJwtVerifier } from './cryptography/rsa-jwt.js';
-import { createPrismaClient } from './persistence/prisma/prisma-client.js';
-import { PrismaFavoriteRepository } from './persistence/prisma/prisma-favorite-repository.js';
-import type { PrismaClient } from './persistence/prisma/generated/client.js';
+import { AUTH_USER_SESSION_CLIENT } from '../application/ports/auth-user-session.ts';
+import { FAVORITE_REPOSITORY } from '../application/ports/favorite-use-cases.ts';
+import { JWT_VERIFIER } from '../application/ports/jwt-ports.ts';
+import { AuthUserSessionClient } from './auth/auth-user-session-client.ts';
+import { validateGameEnvironment } from './config/game-runtime-config.ts';
+import { RsaJwtVerifier } from './cryptography/rsa-jwt.ts';
+import { createPrismaClient } from './persistence/prisma/prisma-client.ts';
+import { PrismaFavoriteRepository } from './persistence/prisma/prisma-favorite-repository.ts';
+import type { PrismaClient } from './persistence/prisma/generated/client.ts';
 
 const PRISMA_CLIENT = Symbol('PRISMA_CLIENT');
 

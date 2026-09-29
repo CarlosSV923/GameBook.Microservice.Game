@@ -1,5 +1,5 @@
 import { IsUUID } from 'class-validator';
-import { createValidationPipe } from '../../../../src/api/http/validation-pipe.js';
+import { createValidationPipe } from '../../../../src/api/http/validation-pipe.ts';
 
 class RequestDto {
   @IsUUID()

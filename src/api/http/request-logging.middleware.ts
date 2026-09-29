@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import type { NextFunction, Request, Response } from 'express';
-import type { RequestWithId } from './request-id.js';
+import type { RequestWithId } from './request-id.ts';
 
 type RequestWithUser = RequestWithId & {
   user?: unknown;
