@@ -1,22 +1,22 @@
 import { Test } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { ApiExceptionFilter } from '../../src/api/http/api-exception.filter.js';
-import { createValidationPipe } from '../../src/api/http/validation-pipe.js';
-import { RequestIdMiddleware } from '../../src/api/http/request-id.js';
-import { JwtAuthGuard } from '../../src/api/auth/jwt-auth-guard.js';
-import { FavoritesController } from '../../src/api/favorites/favorites.controller.js';
-import { CreateFavoriteService } from '../../src/application/use-cases/create-favorite.js';
-import { DeleteFavoriteService } from '../../src/application/use-cases/delete-favorite.js';
-import { ListFavoritesService } from '../../src/application/use-cases/list-favorites.js';
-import { SuggestFavoritesService } from '../../src/application/use-cases/suggest-favorites.js';
-import { UpdateFavoriteSnapshotService } from '../../src/application/use-cases/update-favorite-snapshot.js';
+import { ApiExceptionFilter } from '../../src/api/http/api-exception.filter.ts';
+import { createValidationPipe } from '../../src/api/http/validation-pipe.ts';
+import { RequestIdMiddleware } from '../../src/api/http/request-id.ts';
+import { JwtAuthGuard } from '../../src/api/auth/jwt-auth-guard.ts';
+import { FavoritesController } from '../../src/api/favorites/favorites.controller.ts';
+import { CreateFavoriteService } from '../../src/application/use-cases/create-favorite.ts';
+import { DeleteFavoriteService } from '../../src/application/use-cases/delete-favorite.ts';
+import { ListFavoritesService } from '../../src/application/use-cases/list-favorites.ts';
+import { SuggestFavoritesService } from '../../src/application/use-cases/suggest-favorites.ts';
+import { UpdateFavoriteSnapshotService } from '../../src/application/use-cases/update-favorite-snapshot.ts';
 import {
   FavoriteAlreadyExistsError,
   FavoriteNotFoundError,
   FavoriteYearRangeInvalidError,
-} from '../../src/application/errors/favorite-errors.js';
-import { Favorite } from '../../src/domain/favorites/favorite.js';
+} from '../../src/application/errors/favorite-errors.ts';
+import { Favorite } from '../../src/domain/favorites/favorite.ts';
 
 const userId = '7b7f3d2e-6d8d-4e8c-9e0c-2a96f2fb11aa';
 describe('Favorites HTTP API', () => {

@@ -1,7 +1,7 @@
 import { EventEmitter } from 'node:events';
 import { Logger } from '@nestjs/common';
 import type { NextFunction, Request, Response } from 'express';
-import { RequestLoggingMiddleware } from '../../../../src/api/http/request-logging.middleware.js';
+import { RequestLoggingMiddleware } from '../../../../src/api/http/request-logging.middleware.ts';
 
 describe('RequestLoggingMiddleware', () => {
   afterEach(() => {

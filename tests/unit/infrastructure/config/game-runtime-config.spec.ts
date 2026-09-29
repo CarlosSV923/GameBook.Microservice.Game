@@ -1,5 +1,5 @@
 import { generateKeyPairSync } from 'node:crypto';
-import { validateGameEnvironment } from '../../../../src/infrastructure/config/game-runtime-config.js';
+import { validateGameEnvironment } from '../../../../src/infrastructure/config/game-runtime-config.ts';
 
 function createEnvironment(): NodeJS.ProcessEnv {
   const { publicKey } = generateKeyPairSync('rsa', { modulusLength: 2048 });

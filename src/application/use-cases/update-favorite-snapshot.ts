@@ -3,10 +3,10 @@ import {
   FAVORITE_REPOSITORY,
   type UpdateFavoriteSnapshotInput,
   type UpdateFavoriteSnapshotUseCase,
-} from '../ports/favorite-use-cases.js';
-import { FavoriteNotFoundError } from '../errors/favorite-errors.js';
-import type { Favorite } from '../../domain/favorites/favorite.js';
-import type { FavoriteRepository } from '../../domain/favorites/favorite-repository.js';
+} from '../ports/favorite-use-cases.ts';
+import { FavoriteNotFoundError } from '../errors/favorite-errors.ts';
+import type { Favorite } from '../../domain/favorites/favorite.ts';
+import type { FavoriteRepository } from '../../domain/favorites/favorite-repository.ts';
 
 @Injectable()
 export class UpdateFavoriteSnapshotService implements UpdateFavoriteSnapshotUseCase {

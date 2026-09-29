@@ -29,36 +29,36 @@ import {
   Favorite,
   type FavoriteSnapshotUpdate,
   type NewFavorite,
-} from '../../domain/favorites/favorite.js';
-import type { FavoriteSuggestion } from '../../domain/favorites/favorite-repository.js';
-import { DomainValidationError } from '../../domain/shared/domain-validation-error.js';
+} from '../../domain/favorites/favorite.ts';
+import type { FavoriteSuggestion } from '../../domain/favorites/favorite-repository.ts';
+import { DomainValidationError } from '../../domain/shared/domain-validation-error.ts';
 import {
   FavoriteAlreadyExistsError,
   FavoriteNotFoundError,
   FavoriteYearRangeInvalidError,
-} from '../../application/errors/favorite-errors.js';
-import { CreateFavoriteService } from '../../application/use-cases/create-favorite.js';
-import { DeleteFavoriteService } from '../../application/use-cases/delete-favorite.js';
-import { ListFavoritesService } from '../../application/use-cases/list-favorites.js';
-import { SuggestFavoritesService } from '../../application/use-cases/suggest-favorites.js';
-import { UpdateFavoriteSnapshotService } from '../../application/use-cases/update-favorite-snapshot.js';
+} from '../../application/errors/favorite-errors.ts';
+import { CreateFavoriteService } from '../../application/use-cases/create-favorite.ts';
+import { DeleteFavoriteService } from '../../application/use-cases/delete-favorite.ts';
+import { ListFavoritesService } from '../../application/use-cases/list-favorites.ts';
+import { SuggestFavoritesService } from '../../application/use-cases/suggest-favorites.ts';
+import { UpdateFavoriteSnapshotService } from '../../application/use-cases/update-favorite-snapshot.ts';
 import {
   JwtAuthGuard,
   type AuthenticatedRequest,
-} from '../auth/jwt-auth-guard.js';
+} from '../auth/jwt-auth-guard.ts';
 import {
   CreateFavoriteDto,
   FavoriteIdParamDto,
   ListFavoritesQueryDto,
   SuggestFavoritesQueryDto,
   UpdateFavoriteSnapshotDto,
-} from './favorite.dto.js';
+} from './favorite.dto.ts';
 import {
   ErrorResponseModel,
   FavoriteModel,
   FavoritePageModel,
   SuggestionPageModel,
-} from '../openapi/api-models.js';
+} from '../openapi/api-models.ts';
 
 @Controller('v1/favorites')
 @UseGuards(JwtAuthGuard)

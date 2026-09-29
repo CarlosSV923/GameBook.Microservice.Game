@@ -4,7 +4,7 @@ import {
   RequestIdMiddleware,
   createRequestId,
   resolveRequestId,
-} from '../../../../src/api/http/request-id.js';
+} from '../../../../src/api/http/request-id.ts';
 
 describe('request id', () => {
   it('preserves a safe incoming request id', () => {

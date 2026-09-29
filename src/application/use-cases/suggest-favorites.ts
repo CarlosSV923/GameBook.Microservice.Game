@@ -3,11 +3,11 @@ import {
   FAVORITE_REPOSITORY,
   type SuggestFavoritesInput,
   type SuggestFavoritesUseCase,
-} from '../ports/favorite-use-cases.js';
+} from '../ports/favorite-use-cases.ts';
 import type {
   FavoriteRepository,
   FavoriteSuggestion,
-} from '../../domain/favorites/favorite-repository.js';
+} from '../../domain/favorites/favorite-repository.ts';
 
 @Injectable()
 export class SuggestFavoritesService implements SuggestFavoritesUseCase {

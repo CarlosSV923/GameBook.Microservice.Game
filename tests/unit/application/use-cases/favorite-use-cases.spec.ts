@@ -1,15 +1,15 @@
-import { Favorite } from '../../../../src/domain/favorites/favorite.js';
-import type { FavoriteRepository } from '../../../../src/domain/favorites/favorite-repository.js';
+import { Favorite } from '../../../../src/domain/favorites/favorite.ts';
+import type { FavoriteRepository } from '../../../../src/domain/favorites/favorite-repository.ts';
 import {
   FavoriteAlreadyExistsError,
   FavoriteNotFoundError,
   FavoriteYearRangeInvalidError,
-} from '../../../../src/application/errors/favorite-errors.js';
-import { CreateFavoriteService } from '../../../../src/application/use-cases/create-favorite.js';
-import { DeleteFavoriteService } from '../../../../src/application/use-cases/delete-favorite.js';
-import { ListFavoritesService } from '../../../../src/application/use-cases/list-favorites.js';
-import { SuggestFavoritesService } from '../../../../src/application/use-cases/suggest-favorites.js';
-import { UpdateFavoriteSnapshotService } from '../../../../src/application/use-cases/update-favorite-snapshot.js';
+} from '../../../../src/application/errors/favorite-errors.ts';
+import { CreateFavoriteService } from '../../../../src/application/use-cases/create-favorite.ts';
+import { DeleteFavoriteService } from '../../../../src/application/use-cases/delete-favorite.ts';
+import { ListFavoritesService } from '../../../../src/application/use-cases/list-favorites.ts';
+import { SuggestFavoritesService } from '../../../../src/application/use-cases/suggest-favorites.ts';
+import { UpdateFavoriteSnapshotService } from '../../../../src/application/use-cases/update-favorite-snapshot.ts';
 
 const favoriteInput = {
   userId: '7b7f3d2e-6d8d-4e8c-9e0c-2a96f2fb11aa',
