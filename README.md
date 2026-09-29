@@ -115,3 +115,4 @@ The repository architecture diagram is available in English and Spanish. The emb
 
 - [GameBook.Microservice.AuthUser](https://github.com/CarlosSV923/GameBook.Microservice.AuthUser)
 - [GameBook.Frontend](https://github.com/CarlosSV923/GameBook.Frontend)
+- [GameBook.System documentation](https://github.com/CarlosSV923/GameBook.System/blob/main/README.md)
