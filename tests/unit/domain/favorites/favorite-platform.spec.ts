@@ -1,5 +1,5 @@
-import { DomainValidationError } from '../../../../src/domain/shared/domain-validation-error.js';
-import { FavoritePlatform } from '../../../../src/domain/favorites/favorite-platform.js';
+import { DomainValidationError } from '../../../../src/domain/shared/domain-validation-error.ts';
+import { FavoritePlatform } from '../../../../src/domain/favorites/favorite-platform.ts';
 
 describe('FavoritePlatform', () => {
   it('trims the platform name and preserves the IGDB ID', () => {

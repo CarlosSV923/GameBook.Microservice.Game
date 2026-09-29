@@ -1,7 +1,7 @@
-import type { PrismaClient } from '../../../../src/infrastructure/persistence/prisma/generated/client.js';
-import { Favorite } from '../../../../src/domain/favorites/favorite.js';
-import { FavoriteAlreadyExistsError } from '../../../../src/application/errors/favorite-errors.js';
-import { PrismaFavoriteRepository } from '../../../../src/infrastructure/persistence/prisma/prisma-favorite-repository.js';
+import type { PrismaClient } from '../../../../src/infrastructure/persistence/prisma/generated/client.ts';
+import { Favorite } from '../../../../src/domain/favorites/favorite.ts';
+import { FavoriteAlreadyExistsError } from '../../../../src/application/errors/favorite-errors.ts';
+import { PrismaFavoriteRepository } from '../../../../src/infrastructure/persistence/prisma/prisma-favorite-repository.ts';
 
 describe('PrismaFavoriteRepository', () => {
   const favoriteDelegate = {

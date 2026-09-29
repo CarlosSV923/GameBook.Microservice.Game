@@ -4,20 +4,20 @@ import { createSign, generateKeyPairSync } from 'node:crypto';
 import { createServer, type Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import request from 'supertest';
-import { FAVORITE_REPOSITORY } from '../../src/application/ports/favorite-use-cases.js';
-import { FavoriteAlreadyExistsError } from '../../src/application/errors/favorite-errors.js';
+import { FAVORITE_REPOSITORY } from '../../src/application/ports/favorite-use-cases.ts';
+import { FavoriteAlreadyExistsError } from '../../src/application/errors/favorite-errors.ts';
 import type {
   FavoriteListFilters,
   FavoritePage,
   FavoriteRepository as FavoriteRepositoryPort,
   FavoriteSuggestion,
   FavoriteSuggestionQuery,
-} from '../../src/domain/favorites/favorite-repository.js';
+} from '../../src/domain/favorites/favorite-repository.ts';
 import {
   Favorite,
   type FavoriteSnapshotUpdate,
-} from '../../src/domain/favorites/favorite.js';
-import { configureSwagger } from '../../src/api/openapi/configure-swagger.js';
+} from '../../src/domain/favorites/favorite.ts';
+import { configureSwagger } from '../../src/api/openapi/configure-swagger.ts';
 
 const userA = '7b7f3d2e-6d8d-4e8c-9e0c-2a96f2fb11aa';
 const userB = '11111111-1111-4111-8111-111111111111';
@@ -186,7 +186,7 @@ describe('Game authenticated favorite flow', () => {
     process.env.JWT_AUDIENCE = audience;
     process.env.AUTHUSER_URL = `http://127.0.0.1:${authUserPort}`;
 
-    const { AppModule } = await import('../../src/app.module.js');
+    const { AppModule } = await import('../../src/app.module.ts');
     const moduleFixture = await Test.createTestingModule({
       imports: [AppModule],
     })

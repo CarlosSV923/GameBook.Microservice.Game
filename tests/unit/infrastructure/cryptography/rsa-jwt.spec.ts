@@ -7,8 +7,8 @@ import {
 import {
   JwtExpiredError,
   JwtVerificationError,
-} from '../../../../src/application/ports/jwt-ports.js';
-import { RsaJwtVerifier } from '../../../../src/infrastructure/cryptography/rsa-jwt.js';
+} from '../../../../src/application/ports/jwt-ports.ts';
+import { RsaJwtVerifier } from '../../../../src/infrastructure/cryptography/rsa-jwt.ts';
 
 const claims = {
   sub: '7b7f3d2e-6d8d-4e8c-9e0c-2a96f2fb11aa',

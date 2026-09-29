@@ -12,14 +12,14 @@ import {
   AuthUserUnavailableError,
   AUTH_USER_SESSION_CLIENT,
   type AuthUserSessionClient,
-} from '../../application/ports/auth-user-session.js';
+} from '../../application/ports/auth-user-session.ts';
 import {
   JwtExpiredError,
   JwtVerificationError,
   JWT_VERIFIER,
   type JwtClaims,
   type JwtVerifier,
-} from '../../application/ports/jwt-ports.js';
+} from '../../application/ports/jwt-ports.ts';
 
 export interface AuthenticatedUser {
   readonly userId: string;

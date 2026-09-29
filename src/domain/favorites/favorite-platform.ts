@@ -1,4 +1,4 @@
-import { DomainValidationError } from '../shared/domain-validation-error.js';
+import { DomainValidationError } from '../shared/domain-validation-error.ts';
 
 const MAX_PLATFORM_NAME_LENGTH = 120;
 

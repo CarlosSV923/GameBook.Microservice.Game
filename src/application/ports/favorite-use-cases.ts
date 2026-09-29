@@ -2,14 +2,14 @@ import {
   Favorite,
   type FavoriteSnapshotUpdate,
   type NewFavorite,
-} from '../../domain/favorites/favorite.js';
+} from '../../domain/favorites/favorite.ts';
 import {
   type FavoriteListFilters,
   type FavoritePage,
   type FavoriteRepository,
   type FavoriteSuggestion,
   type FavoriteSuggestionQuery,
-} from '../../domain/favorites/favorite-repository.js';
+} from '../../domain/favorites/favorite-repository.ts';
 
 export const FAVORITE_REPOSITORY = Symbol('FAVORITE_REPOSITORY');
 

@@ -3,9 +3,9 @@ import {
   FAVORITE_REPOSITORY,
   type DeleteFavoriteInput,
   type DeleteFavoriteUseCase,
-} from '../ports/favorite-use-cases.js';
-import { FavoriteNotFoundError } from '../errors/favorite-errors.js';
-import type { FavoriteRepository } from '../../domain/favorites/favorite-repository.js';
+} from '../ports/favorite-use-cases.ts';
+import { FavoriteNotFoundError } from '../errors/favorite-errors.ts';
+import type { FavoriteRepository } from '../../domain/favorites/favorite-repository.ts';
 
 @Injectable()
 export class DeleteFavoriteService implements DeleteFavoriteUseCase {

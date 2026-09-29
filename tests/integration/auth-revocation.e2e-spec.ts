@@ -5,21 +5,21 @@ import { createServer, type Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { HttpStatus, type INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { JwtAuthGuard } from '../../src/api/auth/jwt-auth-guard.js';
-import { ApiExceptionFilter } from '../../src/api/http/api-exception.filter.js';
-import { FavoritesController } from '../../src/api/favorites/favorites.controller.js';
-import { CreateFavoriteService } from '../../src/application/use-cases/create-favorite.js';
-import { DeleteFavoriteService } from '../../src/application/use-cases/delete-favorite.js';
-import { ListFavoritesService } from '../../src/application/use-cases/list-favorites.js';
-import { SuggestFavoritesService } from '../../src/application/use-cases/suggest-favorites.js';
-import { UpdateFavoriteSnapshotService } from '../../src/application/use-cases/update-favorite-snapshot.js';
-import { AuthUserSessionClient } from '../../src/infrastructure/auth/auth-user-session-client.js';
-import { RsaJwtVerifier } from '../../src/infrastructure/cryptography/rsa-jwt.js';
+import { JwtAuthGuard } from '../../src/api/auth/jwt-auth-guard.ts';
+import { ApiExceptionFilter } from '../../src/api/http/api-exception.filter.ts';
+import { FavoritesController } from '../../src/api/favorites/favorites.controller.ts';
+import { CreateFavoriteService } from '../../src/application/use-cases/create-favorite.ts';
+import { DeleteFavoriteService } from '../../src/application/use-cases/delete-favorite.ts';
+import { ListFavoritesService } from '../../src/application/use-cases/list-favorites.ts';
+import { SuggestFavoritesService } from '../../src/application/use-cases/suggest-favorites.ts';
+import { UpdateFavoriteSnapshotService } from '../../src/application/use-cases/update-favorite-snapshot.ts';
+import { AuthUserSessionClient } from '../../src/infrastructure/auth/auth-user-session-client.ts';
+import { RsaJwtVerifier } from '../../src/infrastructure/cryptography/rsa-jwt.ts';
 import {
   AUTH_USER_SESSION_CLIENT,
   type AuthUserSessionClient as AuthUserSessionClientPort,
-} from '../../src/application/ports/auth-user-session.js';
-import { JWT_VERIFIER } from '../../src/application/ports/jwt-ports.js';
+} from '../../src/application/ports/auth-user-session.ts';
+import { JWT_VERIFIER } from '../../src/application/ports/jwt-ports.ts';
 
 const userId = '7b7f3d2e-6d8d-4e8c-9e0c-2a96f2fb11aa';
 const issuer = 'gamebook-authuser-test';

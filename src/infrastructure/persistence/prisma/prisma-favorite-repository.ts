@@ -4,15 +4,15 @@ import type {
   FavoriteRepository,
   FavoriteSuggestion,
   FavoriteSuggestionQuery,
-} from '../../../domain/favorites/favorite-repository.js';
+} from '../../../domain/favorites/favorite-repository.ts';
 import {
   Favorite,
   type FavoriteSnapshotUpdate,
   type FavoritePersistence,
-} from '../../../domain/favorites/favorite.js';
-import type { FavoritePlatformPersistence } from '../../../domain/favorites/favorite-platform.js';
-import { FavoriteAlreadyExistsError } from '../../../application/errors/favorite-errors.js';
-import type { Prisma, PrismaClient } from './generated/client.js';
+} from '../../../domain/favorites/favorite.ts';
+import type { FavoritePlatformPersistence } from '../../../domain/favorites/favorite-platform.ts';
+import { FavoriteAlreadyExistsError } from '../../../application/errors/favorite-errors.ts';
+import type { Prisma, PrismaClient } from './generated/client.ts';
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_PAGE_SIZE = 20;

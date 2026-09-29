@@ -4,7 +4,7 @@ import {
 } from '@nestjs/common';
 import type { ArgumentsHost } from '@nestjs/common';
 import type { Request, Response } from 'express';
-import { ApiExceptionFilter } from '../../../../src/api/http/api-exception.filter.js';
+import { ApiExceptionFilter } from '../../../../src/api/http/api-exception.filter.ts';
 
 function createHost(requestId = 'request-from-client') {
   const json = vi.fn();

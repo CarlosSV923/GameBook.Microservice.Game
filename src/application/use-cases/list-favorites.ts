@@ -3,12 +3,12 @@ import {
   FAVORITE_REPOSITORY,
   type ListFavoritesInput,
   type ListFavoritesUseCase,
-} from '../ports/favorite-use-cases.js';
-import { FavoriteYearRangeInvalidError } from '../errors/favorite-errors.js';
+} from '../ports/favorite-use-cases.ts';
+import { FavoriteYearRangeInvalidError } from '../errors/favorite-errors.ts';
 import type {
   FavoritePage,
   FavoriteRepository,
-} from '../../domain/favorites/favorite-repository.js';
+} from '../../domain/favorites/favorite-repository.ts';
 
 @Injectable()
 export class ListFavoritesService implements ListFavoritesUseCase {

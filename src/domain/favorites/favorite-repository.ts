@@ -1,4 +1,4 @@
-import { Favorite, type FavoriteSnapshotUpdate } from './favorite.js';
+import { Favorite, type FavoriteSnapshotUpdate } from './favorite.ts';
 
 export interface FavoriteListFilters {
   readonly name?: string;

@@ -6,7 +6,7 @@ import {
   type AuthUserSession,
   type AuthUserSessionClient as AuthUserSessionClientPort,
   type AuthUserSessionErrorCode,
-} from '../../application/ports/auth-user-session.js';
+} from '../../application/ports/auth-user-session.ts';
 
 const DEFAULT_TIMEOUT_MS = 3_000;
 const SESSION_PATH = '/v1/auth/session';

@@ -6,7 +6,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
-import { resolveRequestId, type RequestWithId } from './request-id.js';
+import { resolveRequestId, type RequestWithId } from './request-id.ts';
 
 type ErrorDetail = {
   field: string;

@@ -1,11 +1,11 @@
 import { HttpService } from '@nestjs/axios';
 import { of, throwError } from 'rxjs';
-import type { AuthUserSessionErrorCode } from '../../../../src/application/ports/auth-user-session.js';
+import type { AuthUserSessionErrorCode } from '../../../../src/application/ports/auth-user-session.ts';
 import {
   AuthUserSessionRejectedError,
   AuthUserUnavailableError,
-} from '../../../../src/application/ports/auth-user-session.js';
-import { AuthUserSessionClient } from '../../../../src/infrastructure/auth/auth-user-session-client.js';
+} from '../../../../src/application/ports/auth-user-session.ts';
+import { AuthUserSessionClient } from '../../../../src/infrastructure/auth/auth-user-session-client.ts';
 
 describe('AuthUserSessionClient', () => {
   it('forwards the exact Bearer token and reads the authenticated user', async () => {
