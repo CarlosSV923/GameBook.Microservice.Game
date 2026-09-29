@@ -115,3 +115,4 @@ El diagrama de arquitectura del repositorio está disponible en inglés y españ
 
 - [GameBook.Microservice.AuthUser](https://github.com/CarlosSV923/GameBook.Microservice.AuthUser)
 - [GameBook.Frontend](https://github.com/CarlosSV923/GameBook.Frontend)
+- [Documentación de GameBook.System](https://github.com/CarlosSV923/GameBook.System/blob/main/README.es.md)
