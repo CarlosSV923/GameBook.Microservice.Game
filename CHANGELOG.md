@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.4.0](https://github.com/CarlosSV923/GameBook.Microservice.Game/compare/gamebook-microservice-game-v0.3.0...gamebook-microservice-game-v0.4.0) (2026-09-30)
+
+
+### Features
+
+* add local Compose image ([79763e5](https://github.com/CarlosSV923/GameBook.Microservice.Game/commit/79763e5b7a92df0deafc860439526ceb6d7e8e89))
+* **game:** add compose integration image ([bd7b3d3](https://github.com/CarlosSV923/GameBook.Microservice.Game/commit/bd7b3d39bafc04452a342e30797a6e3520eb538f))
+
 ## [0.3.0](https://github.com/CarlosSV923/GameBook.Microservice.Game/compare/gamebook-microservice-game-v0.2.0...gamebook-microservice-game-v0.3.0) (2026-09-27)
 
 
