@@ -57,6 +57,10 @@ pnpm start:dev
 
 Game escucha por defecto en el puerto local 3002.
 
+## Imagen Docker local
+
+El repositorio incluye el `Dockerfile` de estilo productivo que utiliza el Compose de integración de [GameBook.System](https://github.com/CarlosSV923/GameBook.System/blob/main/README.es.md). El Compose conecta Game con PostgreSQL local y AuthUser mediante el DNS interno de Docker; las migraciones Prisma siguen siendo un comando explícito documentado por el repositorio del sistema.
+
 ## Despliegue de producción
 
 Game está desplegado en Render en [`https://gamebook-microservice-game.onrender.com`](https://gamebook-microservice-game.onrender.com). Swagger UI está disponible en [`/docs`](https://gamebook-microservice-game.onrender.com/docs) y el documento OpenAPI en [`/docs/openapi.json`](https://gamebook-microservice-game.onrender.com/docs/openapi.json). La dependencia productiva AuthUser es [`https://gamebook-microservice-authuser.onrender.com`](https://gamebook-microservice-authuser.onrender.com), y el origen del frontend es [`https://gamebook-frontend.vercel.app`](https://gamebook-frontend.vercel.app).
