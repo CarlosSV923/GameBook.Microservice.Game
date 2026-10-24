@@ -10,16 +10,17 @@ export class UpdateFavoriteSnapshotService implements UpdateFavoriteSnapshotUseC
   constructor(private readonly favoriteRepository: FavoriteRepository) {}
 
   async execute(input: UpdateFavoriteSnapshotInput): Promise<Favorite> {
-    const favorite = await this.favoriteRepository.updateSnapshot(
+    const favorite = await this.favoriteRepository.findByIdentity(
       input.userId,
       input.igdbId,
-      input.snapshot,
     );
 
     if (!favorite) {
       throw new FavoriteNotFoundError();
     }
 
+    favorite.updateSnapshot(input.snapshot);
+    await this.favoriteRepository.save(favorite);
     return favorite;
   }
 }

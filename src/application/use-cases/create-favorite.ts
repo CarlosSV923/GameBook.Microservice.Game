@@ -7,7 +7,7 @@ export class CreateFavoriteService implements CreateFavoriteUseCase {
 
   async execute(input: NewFavorite): Promise<Favorite> {
     const favorite = Favorite.create(input);
-    await this.favoriteRepository.save(favorite);
+    await this.favoriteRepository.create(favorite);
     return favorite;
   }
 }

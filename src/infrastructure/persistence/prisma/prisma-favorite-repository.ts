@@ -7,7 +7,6 @@ import type {
 } from '../../../domain/favorites/favorite-repository.ts';
 import {
   Favorite,
-  type FavoriteSnapshotUpdate,
   type FavoritePersistence,
 } from '../../../domain/favorites/favorite.ts';
 import type { FavoritePlatformPersistence } from '../../../domain/favorites/favorite-platform.ts';
@@ -39,7 +38,7 @@ export class PrismaFavoriteRepository implements FavoriteRepository {
     return record ? toDomain(record) : null;
   }
 
-  async save(favorite: Favorite): Promise<void> {
+  async create(favorite: Favorite): Promise<void> {
     const persistence = favorite.toPersistence();
     const platformData = persistence.platforms.map((platform) => ({
       platformId: platform.id,
@@ -65,6 +64,32 @@ export class PrismaFavoriteRepository implements FavoriteRepository {
 
       throw error;
     }
+  }
+
+  async save(favorite: Favorite): Promise<void> {
+    const persistence = favorite.toPersistence();
+
+    await this.prisma.favorite.update({
+      where: {
+        userId_igdbId: {
+          userId: persistence.userId,
+          igdbId: persistence.igdbId,
+        },
+      },
+      data: {
+        name: persistence.name,
+        released: persistence.released,
+        imageUrl: persistence.imageUrl,
+        rating: persistence.rating,
+        platforms: {
+          deleteMany: {},
+          create: persistence.platforms.map((platform) => ({
+            platformId: platform.id,
+            name: platform.name,
+          })),
+        },
+      },
+    });
   }
 
   async list(
@@ -134,44 +159,6 @@ export class PrismaFavoriteRepository implements FavoriteRepository {
       value: record.name,
       platformId: record.platformId,
     }));
-  }
-
-  async updateSnapshot(
-    userId: string,
-    igdbId: number,
-    update: FavoriteSnapshotUpdate,
-  ): Promise<Favorite | null> {
-    const record = await this.prisma.favorite.findUnique({
-      where: { userId_igdbId: { userId, igdbId } },
-      include: { platforms: { orderBy: { platformId: 'asc' } } },
-    });
-
-    if (!record) {
-      return null;
-    }
-
-    const favorite = toDomain(record);
-    favorite.updateSnapshot(update);
-    const persistence = favorite.toPersistence();
-
-    await this.prisma.favorite.update({
-      where: { userId_igdbId: { userId, igdbId } },
-      data: {
-        name: persistence.name,
-        released: persistence.released,
-        imageUrl: persistence.imageUrl,
-        rating: persistence.rating,
-        platforms: {
-          deleteMany: {},
-          create: persistence.platforms.map((platform) => ({
-            platformId: platform.id,
-            name: platform.name,
-          })),
-        },
-      },
-    });
-
-    return favorite;
   }
 
   async delete(userId: string, igdbId: number): Promise<boolean> {
