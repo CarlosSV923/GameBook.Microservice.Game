@@ -6,12 +6,9 @@ import {
 import {
   type FavoriteListFilters,
   type FavoritePage,
-  type FavoriteRepository,
   type FavoriteSuggestion,
   type FavoriteSuggestionQuery,
 } from '../../domain/favorites/favorite-repository.ts';
-
-export const FAVORITE_REPOSITORY = Symbol('FAVORITE_REPOSITORY');
 
 export interface CreateFavoriteUseCase {
   execute(input: NewFavorite): Promise<Favorite>;
@@ -51,7 +48,3 @@ export interface DeleteFavoriteInput {
 export interface DeleteFavoriteUseCase {
   execute(input: DeleteFavoriteInput): Promise<void>;
 }
-
-export type FavoriteUseCaseDependencies = {
-  readonly favoriteRepository: FavoriteRepository;
-};

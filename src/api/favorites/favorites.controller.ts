@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ConflictException,
   Controller,
+  Inject,
   Delete,
   HttpCode,
   HttpStatus,
@@ -37,11 +38,20 @@ import {
   FavoriteNotFoundError,
   FavoriteYearRangeInvalidError,
 } from '../../application/errors/favorite-errors.ts';
-import { CreateFavoriteService } from '../../application/use-cases/create-favorite.ts';
-import { DeleteFavoriteService } from '../../application/use-cases/delete-favorite.ts';
-import { ListFavoritesService } from '../../application/use-cases/list-favorites.ts';
-import { SuggestFavoritesService } from '../../application/use-cases/suggest-favorites.ts';
-import { UpdateFavoriteSnapshotService } from '../../application/use-cases/update-favorite-snapshot.ts';
+import {
+  CREATE_FAVORITE_USE_CASE,
+  DELETE_FAVORITE_USE_CASE,
+  LIST_FAVORITES_USE_CASE,
+  SUGGEST_FAVORITES_USE_CASE,
+  UPDATE_FAVORITE_SNAPSHOT_USE_CASE,
+} from '../../application/ports/dependency-tokens.ts';
+import type {
+  CreateFavoriteUseCase,
+  DeleteFavoriteUseCase,
+  ListFavoritesUseCase,
+  SuggestFavoritesUseCase,
+  UpdateFavoriteSnapshotUseCase,
+} from '../../application/ports/favorite-use-cases.ts';
 import {
   JwtAuthGuard,
   type AuthenticatedRequest,
@@ -66,11 +76,16 @@ import {
 @ApiBearerAuth('BearerAuth')
 export class FavoritesController {
   constructor(
-    private readonly createFavorite: CreateFavoriteService,
-    private readonly deleteFavorite: DeleteFavoriteService,
-    private readonly listFavorites: ListFavoritesService,
-    private readonly suggestFavorites: SuggestFavoritesService,
-    private readonly updateFavoriteSnapshot: UpdateFavoriteSnapshotService,
+    @Inject(CREATE_FAVORITE_USE_CASE)
+    private readonly createFavorite: CreateFavoriteUseCase,
+    @Inject(DELETE_FAVORITE_USE_CASE)
+    private readonly deleteFavorite: DeleteFavoriteUseCase,
+    @Inject(LIST_FAVORITES_USE_CASE)
+    private readonly listFavorites: ListFavoritesUseCase,
+    @Inject(SUGGEST_FAVORITES_USE_CASE)
+    private readonly suggestFavorites: SuggestFavoritesUseCase,
+    @Inject(UPDATE_FAVORITE_SNAPSHOT_USE_CASE)
+    private readonly updateFavoriteSnapshot: UpdateFavoriteSnapshotUseCase,
   ) {}
 
   @Get('suggestions')

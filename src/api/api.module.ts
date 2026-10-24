@@ -1,6 +1,6 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { APP_FILTER, APP_PIPE } from '@nestjs/core';
-import { ApplicationModule } from '../application/application.module.ts';
+import { ApplicationModule } from '../application.module.ts';
 import { InfrastructureModule } from '../infrastructure/infrastructure.module.ts';
 import { JwtAuthGuard } from './auth/jwt-auth-guard.ts';
 import { FavoritesController } from './favorites/favorites.controller.ts';

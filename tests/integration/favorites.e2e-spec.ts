@@ -6,11 +6,13 @@ import { createValidationPipe } from '../../src/api/http/validation-pipe.ts';
 import { RequestIdMiddleware } from '../../src/api/http/request-id.ts';
 import { JwtAuthGuard } from '../../src/api/auth/jwt-auth-guard.ts';
 import { FavoritesController } from '../../src/api/favorites/favorites.controller.ts';
-import { CreateFavoriteService } from '../../src/application/use-cases/create-favorite.ts';
-import { DeleteFavoriteService } from '../../src/application/use-cases/delete-favorite.ts';
-import { ListFavoritesService } from '../../src/application/use-cases/list-favorites.ts';
-import { SuggestFavoritesService } from '../../src/application/use-cases/suggest-favorites.ts';
-import { UpdateFavoriteSnapshotService } from '../../src/application/use-cases/update-favorite-snapshot.ts';
+import {
+  CREATE_FAVORITE_USE_CASE,
+  DELETE_FAVORITE_USE_CASE,
+  LIST_FAVORITES_USE_CASE,
+  SUGGEST_FAVORITES_USE_CASE,
+  UPDATE_FAVORITE_SNAPSHOT_USE_CASE,
+} from '../../src/application/ports/dependency-tokens.ts';
 import {
   FavoriteAlreadyExistsError,
   FavoriteNotFoundError,
@@ -32,12 +34,12 @@ describe('Favorites HTTP API', () => {
     const moduleFixture = await Test.createTestingModule({
       controllers: [FavoritesController],
       providers: [
-        { provide: CreateFavoriteService, useValue: createFavorite },
-        { provide: DeleteFavoriteService, useValue: deleteFavorite },
-        { provide: ListFavoritesService, useValue: listFavorites },
-        { provide: SuggestFavoritesService, useValue: suggestFavorites },
+        { provide: CREATE_FAVORITE_USE_CASE, useValue: createFavorite },
+        { provide: DELETE_FAVORITE_USE_CASE, useValue: deleteFavorite },
+        { provide: LIST_FAVORITES_USE_CASE, useValue: listFavorites },
+        { provide: SUGGEST_FAVORITES_USE_CASE, useValue: suggestFavorites },
         {
-          provide: UpdateFavoriteSnapshotService,
+          provide: UPDATE_FAVORITE_SNAPSHOT_USE_CASE,
           useValue: updateFavoriteSnapshot,
         },
       ],
