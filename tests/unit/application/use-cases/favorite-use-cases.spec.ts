@@ -29,12 +29,12 @@ describe('favorite use cases', () => {
     await expect(service.execute(favoriteInput)).resolves.toEqual(
       Favorite.create(favoriteInput),
     );
-    expect(repository.save).toHaveBeenCalledWith(expect.any(Favorite));
+    expect(repository.create).toHaveBeenCalledWith(expect.any(Favorite));
   });
 
   it('preserves the duplicate error from the concurrent-safe repository', async () => {
     const repository = createRepository();
-    repository.save.mockRejectedValue(new FavoriteAlreadyExistsError());
+    repository.create.mockRejectedValue(new FavoriteAlreadyExistsError());
     const service = new CreateFavoriteService(repository);
 
     await expect(service.execute(favoriteInput)).rejects.toBeInstanceOf(
@@ -146,7 +146,8 @@ describe('favorite use cases', () => {
 
   it('updates only the authenticated subject snapshot', async () => {
     const repository = createRepository();
-    repository.updateSnapshot.mockResolvedValue(Favorite.create(favoriteInput));
+    const favorite = Favorite.create(favoriteInput);
+    repository.findByIdentity.mockResolvedValue(favorite);
     const service = new UpdateFavoriteSnapshotService(repository);
 
     await expect(
@@ -155,17 +156,29 @@ describe('favorite use cases', () => {
         igdbId: favoriteInput.igdbId,
         snapshot: { rating: null, platforms: [] },
       }),
-    ).resolves.toEqual(Favorite.create(favoriteInput));
-    expect(repository.updateSnapshot).toHaveBeenCalledWith(
+    ).resolves.toEqual(favorite);
+    expect(repository.findByIdentity.mock.calls).toContainEqual([
       favoriteInput.userId,
       favoriteInput.igdbId,
-      { rating: null, platforms: [] },
-    );
+    ]);
+    expect(favorite.rating).toBeNull();
+    expect(favorite.platforms).toEqual([]);
+    expect(repository.save).toHaveBeenCalledWith(favorite);
   });
 
-  it('reports a missing own favorite when updating the snapshot', async () => {
+  it("does not update another user's favorite", async () => {
     const repository = createRepository();
-    repository.updateSnapshot.mockResolvedValue(null);
+    const otherUsersFavorite = Favorite.create({
+      ...favoriteInput,
+      userId: '11111111-1111-4111-8111-111111111111',
+    });
+    repository.findByIdentity.mockImplementation(
+      async (userId: string, igdbId: number) =>
+        userId === otherUsersFavorite.userId &&
+        igdbId === otherUsersFavorite.igdbId
+          ? otherUsersFavorite
+          : null,
+    );
     const service = new UpdateFavoriteSnapshotService(repository);
 
     await expect(
@@ -175,28 +188,51 @@ describe('favorite use cases', () => {
         snapshot: { name: 'Updated Game' },
       }),
     ).rejects.toBeInstanceOf(FavoriteNotFoundError);
+    expect(repository.save).not.toHaveBeenCalled();
+    expect(otherUsersFavorite.name).toBe(favoriteInput.name);
+    expect(repository.findByIdentity.mock.calls).toContainEqual([
+      favoriteInput.userId,
+      favoriteInput.igdbId,
+    ]);
+  });
+
+  it('rejects an empty snapshot without saving', async () => {
+    const repository = createRepository();
+    repository.findByIdentity.mockResolvedValue(Favorite.create(favoriteInput));
+    const service = new UpdateFavoriteSnapshotService(repository);
+
+    await expect(
+      service.execute({
+        userId: favoriteInput.userId,
+        igdbId: favoriteInput.igdbId,
+        snapshot: {},
+      }),
+    ).rejects.toMatchObject({ code: 'FAVORITE_SNAPSHOT_EMPTY' });
+    expect(repository.save).not.toHaveBeenCalled();
   });
 });
 
 function createRepository(): FavoriteRepository & {
+  findByIdentity: ReturnType<typeof vi.fn>;
   save: ReturnType<typeof vi.fn>;
+  create: ReturnType<typeof vi.fn>;
   delete: ReturnType<typeof vi.fn>;
   list: ReturnType<typeof vi.fn>;
   suggest: ReturnType<typeof vi.fn>;
-  updateSnapshot: ReturnType<typeof vi.fn>;
 } {
   return {
     findByIdentity: vi.fn(),
+    create: vi.fn(),
     save: vi.fn(),
     list: vi.fn(),
     suggest: vi.fn(),
-    updateSnapshot: vi.fn(),
     delete: vi.fn(),
   } as unknown as FavoriteRepository & {
+    findByIdentity: ReturnType<typeof vi.fn>;
     save: ReturnType<typeof vi.fn>;
+    create: ReturnType<typeof vi.fn>;
     delete: ReturnType<typeof vi.fn>;
     list: ReturnType<typeof vi.fn>;
     suggest: ReturnType<typeof vi.fn>;
-    updateSnapshot: ReturnType<typeof vi.fn>;
   };
 }

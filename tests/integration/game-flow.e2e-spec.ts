@@ -13,10 +13,7 @@ import type {
   FavoriteSuggestion,
   FavoriteSuggestionQuery,
 } from '../../src/domain/favorites/favorite-repository.ts';
-import {
-  Favorite,
-  type FavoriteSnapshotUpdate,
-} from '../../src/domain/favorites/favorite.ts';
+import { Favorite } from '../../src/domain/favorites/favorite.ts';
 import { configureSwagger } from '../../src/api/openapi/configure-swagger.ts';
 
 const userA = '7b7f3d2e-6d8d-4e8c-9e0c-2a96f2fb11aa';
@@ -53,10 +50,19 @@ class InMemoryFavoriteRepository implements FavoriteRepositoryPort {
     return Promise.resolve(this.favorites.get(key(userId, igdbId)) ?? null);
   }
 
-  async save(favorite: Favorite): Promise<void> {
+  async create(favorite: Favorite): Promise<void> {
     const identity = key(favorite.userId, favorite.igdbId);
     if (this.favorites.has(identity)) {
       throw new FavoriteAlreadyExistsError();
+    }
+
+    this.favorites.set(identity, favorite);
+  }
+
+  async save(favorite: Favorite): Promise<void> {
+    const identity = key(favorite.userId, favorite.igdbId);
+    if (!this.favorites.has(identity)) {
+      throw new Error('Cannot save a favorite that does not exist.');
     }
 
     this.favorites.set(identity, favorite);
@@ -127,20 +133,6 @@ class InMemoryFavoriteRepository implements FavoriteRepositoryPort {
       )
       .filter((platform) => platform.value.toLowerCase().includes(normalized))
       .slice(0, limit);
-  }
-
-  async updateSnapshot(
-    userId: string,
-    igdbId: number,
-    update: FavoriteSnapshotUpdate,
-  ): Promise<Favorite | null> {
-    const favorite = this.favorites.get(key(userId, igdbId));
-    if (!favorite) {
-      return null;
-    }
-
-    favorite.updateSnapshot(update);
-    return favorite;
   }
 
   async delete(userId: string, igdbId: number): Promise<boolean> {

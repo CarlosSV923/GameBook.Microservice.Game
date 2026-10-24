@@ -68,7 +68,7 @@ describe('PrismaFavoriteRepository', () => {
   });
 
   it('creates the snapshot and its platforms in one Prisma operation', async () => {
-    await repository.save(favorite);
+    await repository.create(favorite);
 
     expect(favoriteDelegate.create).toHaveBeenCalledWith({
       data: {
@@ -103,19 +103,15 @@ describe('PrismaFavoriteRepository', () => {
     });
 
     await expect(
-      repository.updateSnapshot(favorite.userId, favorite.igdbId, {
-        name: 'Updated Game',
-        rating: null,
-        platforms: [{ id: 130, name: 'Nintendo Switch' }],
-      }),
-    ).resolves.toEqual(
-      Favorite.rehydrate({
-        ...favorite.toPersistence(),
-        name: 'Updated Game',
-        rating: null,
-        platforms: [{ id: 130, name: 'Nintendo Switch' }],
-      }),
-    );
+      repository.save(
+        Favorite.rehydrate({
+          ...favorite.toPersistence(),
+          name: 'Updated Game',
+          rating: null,
+          platforms: [{ id: 130, name: 'Nintendo Switch' }],
+        }),
+      ),
+    ).resolves.toBeUndefined();
     expect(favoriteDelegate.update).toHaveBeenCalledWith({
       where: {
         userId_igdbId: { userId: favorite.userId, igdbId: favorite.igdbId },
@@ -133,38 +129,10 @@ describe('PrismaFavoriteRepository', () => {
     });
   });
 
-  it('does not update a favorite owned by another user', async () => {
-    favoriteDelegate.findUnique.mockResolvedValue(null);
-
-    await expect(
-      repository.updateSnapshot(favorite.userId, favorite.igdbId, {
-        name: 'Updated Game',
-      }),
-    ).resolves.toBeNull();
-    expect(favoriteDelegate.update).not.toHaveBeenCalled();
-  });
-
-  it('rejects an empty snapshot without writing to Prisma', async () => {
-    favoriteDelegate.findUnique.mockResolvedValue({
-      userId: favorite.userId,
-      igdbId: favorite.igdbId,
-      name: favorite.name,
-      released: favorite.released,
-      imageUrl: favorite.imageUrl,
-      rating: { toString: () => '94.5' },
-      platforms: [],
-    });
-
-    await expect(
-      repository.updateSnapshot(favorite.userId, favorite.igdbId, {}),
-    ).rejects.toMatchObject({ code: 'FAVORITE_SNAPSHOT_EMPTY' });
-    expect(favoriteDelegate.update).not.toHaveBeenCalled();
-  });
-
   it('maps a database uniqueness race to the duplicate error', async () => {
     favoriteDelegate.create.mockRejectedValue({ code: 'P2002' });
 
-    await expect(repository.save(favorite)).rejects.toBeInstanceOf(
+    await expect(repository.create(favorite)).rejects.toBeInstanceOf(
       FavoriteAlreadyExistsError,
     );
   });
