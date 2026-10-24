@@ -1,6 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
 import {
-  FAVORITE_REPOSITORY,
   type ListFavoritesInput,
   type ListFavoritesUseCase,
 } from '../ports/favorite-use-cases.ts';
@@ -10,12 +8,8 @@ import type {
   FavoriteRepository,
 } from '../../domain/favorites/favorite-repository.ts';
 
-@Injectable()
 export class ListFavoritesService implements ListFavoritesUseCase {
-  constructor(
-    @Inject(FAVORITE_REPOSITORY)
-    private readonly favoriteRepository: FavoriteRepository,
-  ) {}
+  constructor(private readonly favoriteRepository: FavoriteRepository) {}
 
   async execute(input: ListFavoritesInput): Promise<FavoritePage> {
     if (

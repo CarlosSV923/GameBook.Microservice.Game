@@ -2,7 +2,7 @@ import { HttpModule, HttpService } from '@nestjs/axios';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AUTH_USER_SESSION_CLIENT } from '../application/ports/auth-user-session.ts';
-import { FAVORITE_REPOSITORY } from '../application/ports/favorite-use-cases.ts';
+import { FAVORITE_REPOSITORY } from '../application/ports/dependency-tokens.ts';
 import { JWT_VERIFIER } from '../application/ports/jwt-ports.ts';
 import { AuthUserSessionClient } from './auth/auth-user-session-client.ts';
 import { validateGameEnvironment } from './config/game-runtime-config.ts';
