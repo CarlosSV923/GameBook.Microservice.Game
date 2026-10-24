@@ -4,7 +4,7 @@ import { createSign, generateKeyPairSync } from 'node:crypto';
 import { createServer, type Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import request from 'supertest';
-import { FAVORITE_REPOSITORY } from '../../src/application/ports/favorite-use-cases.ts';
+import { FAVORITE_REPOSITORY } from '../../src/application/ports/dependency-tokens.ts';
 import { FavoriteAlreadyExistsError } from '../../src/application/errors/favorite-errors.ts';
 import type {
   FavoriteListFilters,
