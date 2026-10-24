@@ -1,4 +1,4 @@
-import { Favorite, type FavoriteSnapshotUpdate } from './favorite.ts';
+import { Favorite } from './favorite.ts';
 
 export interface FavoriteListFilters {
   readonly name?: string;
@@ -38,16 +38,12 @@ export type FavoriteSuggestion = NameSuggestion | PlatformSuggestion;
 
 export interface FavoriteRepository {
   findByIdentity(userId: string, igdbId: number): Promise<Favorite | null>;
+  create(favorite: Favorite): Promise<void>;
   save(favorite: Favorite): Promise<void>;
   list(userId: string, filters: FavoriteListFilters): Promise<FavoritePage>;
   suggest(
     userId: string,
     query: FavoriteSuggestionQuery,
   ): Promise<readonly FavoriteSuggestion[]>;
-  updateSnapshot(
-    userId: string,
-    igdbId: number,
-    update: FavoriteSnapshotUpdate,
-  ): Promise<Favorite | null>;
   delete(userId: string, igdbId: number): Promise<boolean>;
 }
