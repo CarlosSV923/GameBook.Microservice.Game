@@ -2,12 +2,14 @@ import { Module } from '@nestjs/common';
 import {
   CREATE_FAVORITE_USE_CASE,
   DELETE_FAVORITE_USE_CASE,
+  FAVORITE_READ_MODEL,
   FAVORITE_REPOSITORY,
   LIST_FAVORITES_USE_CASE,
   SUGGEST_FAVORITES_USE_CASE,
   UPDATE_FAVORITE_SNAPSHOT_USE_CASE,
 } from './application/ports/dependency-tokens.ts';
 import type { FavoriteRepository } from './domain/favorites/favorite-repository.ts';
+import type { FavoriteReadModel } from './application/ports/favorite-read-model.ts';
 import { InfrastructureModule } from './infrastructure/infrastructure.module.ts';
 import { CreateFavoriteService } from './application/use-cases/create-favorite.ts';
 import { DeleteFavoriteService } from './application/use-cases/delete-favorite.ts';
@@ -32,15 +34,15 @@ import { UpdateFavoriteSnapshotService } from './application/use-cases/update-fa
     },
     {
       provide: LIST_FAVORITES_USE_CASE,
-      useFactory: (repository: FavoriteRepository) =>
-        new ListFavoritesService(repository),
-      inject: [FAVORITE_REPOSITORY],
+      useFactory: (readModel: FavoriteReadModel) =>
+        new ListFavoritesService(readModel),
+      inject: [FAVORITE_READ_MODEL],
     },
     {
       provide: SUGGEST_FAVORITES_USE_CASE,
-      useFactory: (repository: FavoriteRepository) =>
-        new SuggestFavoritesService(repository),
-      inject: [FAVORITE_REPOSITORY],
+      useFactory: (readModel: FavoriteReadModel) =>
+        new SuggestFavoritesService(readModel),
+      inject: [FAVORITE_READ_MODEL],
     },
     {
       provide: UPDATE_FAVORITE_SNAPSHOT_USE_CASE,

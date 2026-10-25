@@ -2,13 +2,17 @@ import { HttpModule, HttpService } from '@nestjs/axios';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AUTH_USER_SESSION_CLIENT } from '../application/ports/auth-user-session.ts';
-import { FAVORITE_REPOSITORY } from '../application/ports/dependency-tokens.ts';
+import {
+  FAVORITE_READ_MODEL,
+  FAVORITE_REPOSITORY,
+} from '../application/ports/dependency-tokens.ts';
 import { JWT_VERIFIER } from '../application/ports/jwt-ports.ts';
 import { AuthUserSessionClient } from './auth/auth-user-session-client.ts';
 import { validateGameEnvironment } from './config/game-runtime-config.ts';
 import { RsaJwtVerifier } from './cryptography/rsa-jwt.ts';
 import { createPrismaClient } from './persistence/prisma/prisma-client.ts';
 import { PrismaFavoriteRepository } from './persistence/prisma/prisma-favorite-repository.ts';
+import { PrismaFavoriteReadModel } from './persistence/prisma/prisma-favorite-read-model.ts';
 import type { PrismaClient } from './persistence/prisma/generated/client.ts';
 
 const PRISMA_CLIENT = Symbol('PRISMA_CLIENT');
@@ -53,7 +57,17 @@ const PRISMA_CLIENT = Symbol('PRISMA_CLIENT');
         new PrismaFavoriteRepository(prisma),
       inject: [PRISMA_CLIENT],
     },
+    {
+      provide: FAVORITE_READ_MODEL,
+      useFactory: (prisma: PrismaClient) => new PrismaFavoriteReadModel(prisma),
+      inject: [PRISMA_CLIENT],
+    },
   ],
-  exports: [AUTH_USER_SESSION_CLIENT, FAVORITE_REPOSITORY, JWT_VERIFIER],
+  exports: [
+    AUTH_USER_SESSION_CLIENT,
+    FAVORITE_READ_MODEL,
+    FAVORITE_REPOSITORY,
+    JWT_VERIFIER,
+  ],
 })
 export class InfrastructureModule {}

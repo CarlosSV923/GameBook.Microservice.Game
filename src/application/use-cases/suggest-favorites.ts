@@ -3,17 +3,17 @@ import {
   type SuggestFavoritesUseCase,
 } from '../ports/favorite-use-cases.ts';
 import type {
-  FavoriteRepository,
+  FavoriteReadModel,
   FavoriteSuggestion,
-} from '../../domain/favorites/favorite-repository.ts';
+} from '../ports/favorite-read-model.ts';
 
 export class SuggestFavoritesService implements SuggestFavoritesUseCase {
-  constructor(private readonly favoriteRepository: FavoriteRepository) {}
+  constructor(private readonly favoriteReadModel: FavoriteReadModel) {}
 
   execute(
     input: SuggestFavoritesInput,
   ): Promise<readonly FavoriteSuggestion[]> {
     const { userId, ...query } = input;
-    return this.favoriteRepository.suggest(userId, query);
+    return this.favoriteReadModel.suggest(userId, query);
   }
 }
