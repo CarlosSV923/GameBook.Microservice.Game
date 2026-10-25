@@ -4,15 +4,19 @@ import { createSign, generateKeyPairSync } from 'node:crypto';
 import { createServer, type Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import request from 'supertest';
-import { FAVORITE_REPOSITORY } from '../../src/application/ports/dependency-tokens.ts';
+import {
+  FAVORITE_READ_MODEL,
+  FAVORITE_REPOSITORY,
+} from '../../src/application/ports/dependency-tokens.ts';
 import { FavoriteAlreadyExistsError } from '../../src/application/errors/favorite-errors.ts';
+import type { FavoriteRepository as FavoriteRepositoryPort } from '../../src/domain/favorites/favorite-repository.ts';
 import type {
   FavoriteListFilters,
   FavoritePage,
-  FavoriteRepository as FavoriteRepositoryPort,
+  FavoriteReadModel,
   FavoriteSuggestion,
   FavoriteSuggestionQuery,
-} from '../../src/domain/favorites/favorite-repository.ts';
+} from '../../src/application/ports/favorite-read-model.ts';
 import { Favorite } from '../../src/domain/favorites/favorite.ts';
 import { configureSwagger } from '../../src/api/openapi/configure-swagger.ts';
 
@@ -35,7 +39,9 @@ const originalEnvironment = {
   AUTHUSER_URL: process.env.AUTHUSER_URL,
 };
 
-class InMemoryFavoriteRepository implements FavoriteRepositoryPort {
+class InMemoryFavoriteRepository
+  implements FavoriteRepositoryPort, FavoriteReadModel
+{
   private readonly favorites = new Map<string, Favorite>();
 
   size(): number {
@@ -183,6 +189,8 @@ describe('Game authenticated favorite flow', () => {
       imports: [AppModule],
     })
       .overrideProvider(FAVORITE_REPOSITORY)
+      .useValue(repository)
+      .overrideProvider(FAVORITE_READ_MODEL)
       .useValue(repository)
       .compile();
 

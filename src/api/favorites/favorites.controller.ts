@@ -31,7 +31,7 @@ import {
   type FavoriteSnapshotUpdate,
   type NewFavorite,
 } from '../../domain/favorites/favorite.ts';
-import type { FavoriteSuggestion } from '../../domain/favorites/favorite-repository.ts';
+import type { FavoriteSuggestion } from '../../application/ports/favorite-read-model.ts';
 import { DomainValidationError } from '../../domain/shared/domain-validation-error.ts';
 import {
   FavoriteAlreadyExistsError,
