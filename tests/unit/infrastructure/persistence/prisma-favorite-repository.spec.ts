@@ -8,14 +8,10 @@ describe('PrismaFavoriteRepository', () => {
     findUnique: vi.fn(),
     create: vi.fn(),
     update: vi.fn(),
-    count: vi.fn(),
-    findMany: vi.fn(),
     deleteMany: vi.fn(),
   };
-  const platformDelegate = { findMany: vi.fn() };
   const prisma = {
     favorite: favoriteDelegate,
-    favoritePlatform: platformDelegate,
   } as unknown as PrismaClient;
   const repository = new PrismaFavoriteRepository(prisma);
   const favorite = Favorite.create({
@@ -68,7 +64,7 @@ describe('PrismaFavoriteRepository', () => {
   });
 
   it('creates the snapshot and its platforms in one Prisma operation', async () => {
-    await repository.save(favorite);
+    await repository.create(favorite);
 
     expect(favoriteDelegate.create).toHaveBeenCalledWith({
       data: {
@@ -103,19 +99,15 @@ describe('PrismaFavoriteRepository', () => {
     });
 
     await expect(
-      repository.updateSnapshot(favorite.userId, favorite.igdbId, {
-        name: 'Updated Game',
-        rating: null,
-        platforms: [{ id: 130, name: 'Nintendo Switch' }],
-      }),
-    ).resolves.toEqual(
-      Favorite.rehydrate({
-        ...favorite.toPersistence(),
-        name: 'Updated Game',
-        rating: null,
-        platforms: [{ id: 130, name: 'Nintendo Switch' }],
-      }),
-    );
+      repository.save(
+        Favorite.rehydrate({
+          ...favorite.toPersistence(),
+          name: 'Updated Game',
+          rating: null,
+          platforms: [{ id: 130, name: 'Nintendo Switch' }],
+        }),
+      ),
+    ).resolves.toBeUndefined();
     expect(favoriteDelegate.update).toHaveBeenCalledWith({
       where: {
         userId_igdbId: { userId: favorite.userId, igdbId: favorite.igdbId },
@@ -133,140 +125,12 @@ describe('PrismaFavoriteRepository', () => {
     });
   });
 
-  it('does not update a favorite owned by another user', async () => {
-    favoriteDelegate.findUnique.mockResolvedValue(null);
-
-    await expect(
-      repository.updateSnapshot(favorite.userId, favorite.igdbId, {
-        name: 'Updated Game',
-      }),
-    ).resolves.toBeNull();
-    expect(favoriteDelegate.update).not.toHaveBeenCalled();
-  });
-
-  it('rejects an empty snapshot without writing to Prisma', async () => {
-    favoriteDelegate.findUnique.mockResolvedValue({
-      userId: favorite.userId,
-      igdbId: favorite.igdbId,
-      name: favorite.name,
-      released: favorite.released,
-      imageUrl: favorite.imageUrl,
-      rating: { toString: () => '94.5' },
-      platforms: [],
-    });
-
-    await expect(
-      repository.updateSnapshot(favorite.userId, favorite.igdbId, {}),
-    ).rejects.toMatchObject({ code: 'FAVORITE_SNAPSHOT_EMPTY' });
-    expect(favoriteDelegate.update).not.toHaveBeenCalled();
-  });
-
   it('maps a database uniqueness race to the duplicate error', async () => {
     favoriteDelegate.create.mockRejectedValue({ code: 'P2002' });
 
-    await expect(repository.save(favorite)).rejects.toBeInstanceOf(
+    await expect(repository.create(favorite)).rejects.toBeInstanceOf(
       FavoriteAlreadyExistsError,
     );
-  });
-
-  it('combines filters, uses an inclusive year range, stable ordering, and bounded pagination', async () => {
-    favoriteDelegate.count.mockResolvedValue(21);
-    favoriteDelegate.findMany.mockResolvedValue([]);
-
-    await expect(
-      repository.list(favorite.userId, {
-        name: '  grand ',
-        platformId: 6,
-        yearFrom: 2013,
-        yearTo: 2020,
-        page: 2,
-        pageSize: 5000,
-      }),
-    ).resolves.toEqual({
-      items: [],
-      page: 2,
-      pageSize: 1000,
-      total: 21,
-      hasNext: false,
-    });
-
-    const expectedWhere = {
-      userId: favorite.userId,
-      name: { contains: 'grand', mode: 'insensitive' },
-      platforms: { some: { platformId: 6 } },
-      released: {
-        gte: new Date('2013-01-01T00:00:00.000Z'),
-        lt: new Date('2021-01-01T00:00:00.000Z'),
-      },
-    };
-    expect(favoriteDelegate.count).toHaveBeenCalledWith({
-      where: expectedWhere,
-    });
-    expect(favoriteDelegate.findMany).toHaveBeenCalledWith({
-      where: expectedWhere,
-      include: { platforms: { orderBy: { platformId: 'asc' } } },
-      orderBy: [{ name: 'asc' }, { igdbId: 'asc' }],
-      skip: 1000,
-      take: 1000,
-    });
-  });
-
-  it('does not add an empty release condition when no year filter is provided', async () => {
-    favoriteDelegate.count.mockResolvedValue(0);
-    favoriteDelegate.findMany.mockResolvedValue([]);
-
-    await repository.list(favorite.userId, {});
-
-    expect(favoriteDelegate.count).toHaveBeenCalledWith({
-      where: { userId: favorite.userId },
-    });
-  });
-
-  it('suggests names and platforms only from the requested user with bounded limits', async () => {
-    favoriteDelegate.findMany.mockResolvedValue([
-      { name: 'Grand Example' },
-      { name: 'Grand Example 2' },
-    ]);
-    platformDelegate.findMany.mockResolvedValue([
-      { name: 'PC', platformId: 6 },
-    ]);
-
-    await expect(
-      repository.suggest(favorite.userId, {
-        type: 'name',
-        query: ' grand ',
-        limit: 100,
-      }),
-    ).resolves.toEqual([
-      { type: 'name', value: 'Grand Example' },
-      { type: 'name', value: 'Grand Example 2' },
-    ]);
-    await expect(
-      repository.suggest(favorite.userId, {
-        type: 'platform',
-        query: ' pc ',
-        limit: 100,
-      }),
-    ).resolves.toEqual([{ type: 'platform', value: 'PC', platformId: 6 }]);
-
-    expect(favoriteDelegate.findMany).toHaveBeenCalledWith({
-      where: {
-        userId: favorite.userId,
-        name: { contains: 'grand', mode: 'insensitive' },
-      },
-      orderBy: [{ name: 'asc' }, { igdbId: 'asc' }],
-      distinct: ['name'],
-      take: 20,
-    });
-    expect(platformDelegate.findMany).toHaveBeenCalledWith({
-      where: {
-        userId: favorite.userId,
-        name: { contains: 'pc', mode: 'insensitive' },
-      },
-      orderBy: [{ name: 'asc' }, { platformId: 'asc' }],
-      distinct: ['platformId'],
-      take: 20,
-    });
   });
 
   it('returns whether deleting the own favorite affected a row', async () => {

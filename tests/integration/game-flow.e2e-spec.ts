@@ -4,19 +4,20 @@ import { createSign, generateKeyPairSync } from 'node:crypto';
 import { createServer, type Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import request from 'supertest';
-import { FAVORITE_REPOSITORY } from '../../src/application/ports/favorite-use-cases.ts';
+import {
+  FAVORITE_READ_MODEL,
+  FAVORITE_REPOSITORY,
+} from '../../src/application/ports/dependency-tokens.ts';
 import { FavoriteAlreadyExistsError } from '../../src/application/errors/favorite-errors.ts';
+import type { FavoriteRepository as FavoriteRepositoryPort } from '../../src/domain/favorites/favorite-repository.ts';
 import type {
   FavoriteListFilters,
   FavoritePage,
-  FavoriteRepository as FavoriteRepositoryPort,
+  FavoriteReadModel,
   FavoriteSuggestion,
   FavoriteSuggestionQuery,
-} from '../../src/domain/favorites/favorite-repository.ts';
-import {
-  Favorite,
-  type FavoriteSnapshotUpdate,
-} from '../../src/domain/favorites/favorite.ts';
+} from '../../src/application/ports/favorite-read-model.ts';
+import { Favorite } from '../../src/domain/favorites/favorite.ts';
 import { configureSwagger } from '../../src/api/openapi/configure-swagger.ts';
 
 const userA = '7b7f3d2e-6d8d-4e8c-9e0c-2a96f2fb11aa';
@@ -38,7 +39,9 @@ const originalEnvironment = {
   AUTHUSER_URL: process.env.AUTHUSER_URL,
 };
 
-class InMemoryFavoriteRepository implements FavoriteRepositoryPort {
+class InMemoryFavoriteRepository
+  implements FavoriteRepositoryPort, FavoriteReadModel
+{
   private readonly favorites = new Map<string, Favorite>();
 
   size(): number {
@@ -53,10 +56,19 @@ class InMemoryFavoriteRepository implements FavoriteRepositoryPort {
     return Promise.resolve(this.favorites.get(key(userId, igdbId)) ?? null);
   }
 
-  async save(favorite: Favorite): Promise<void> {
+  async create(favorite: Favorite): Promise<void> {
     const identity = key(favorite.userId, favorite.igdbId);
     if (this.favorites.has(identity)) {
       throw new FavoriteAlreadyExistsError();
+    }
+
+    this.favorites.set(identity, favorite);
+  }
+
+  async save(favorite: Favorite): Promise<void> {
+    const identity = key(favorite.userId, favorite.igdbId);
+    if (!this.favorites.has(identity)) {
+      throw new Error('Cannot save a favorite that does not exist.');
     }
 
     this.favorites.set(identity, favorite);
@@ -129,20 +141,6 @@ class InMemoryFavoriteRepository implements FavoriteRepositoryPort {
       .slice(0, limit);
   }
 
-  async updateSnapshot(
-    userId: string,
-    igdbId: number,
-    update: FavoriteSnapshotUpdate,
-  ): Promise<Favorite | null> {
-    const favorite = this.favorites.get(key(userId, igdbId));
-    if (!favorite) {
-      return null;
-    }
-
-    favorite.updateSnapshot(update);
-    return favorite;
-  }
-
   async delete(userId: string, igdbId: number): Promise<boolean> {
     return this.favorites.delete(key(userId, igdbId));
   }
@@ -191,6 +189,8 @@ describe('Game authenticated favorite flow', () => {
       imports: [AppModule],
     })
       .overrideProvider(FAVORITE_REPOSITORY)
+      .useValue(repository)
+      .overrideProvider(FAVORITE_READ_MODEL)
       .useValue(repository)
       .compile();
 

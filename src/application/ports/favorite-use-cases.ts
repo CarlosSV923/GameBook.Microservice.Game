@@ -3,15 +3,12 @@ import {
   type FavoriteSnapshotUpdate,
   type NewFavorite,
 } from '../../domain/favorites/favorite.ts';
-import {
-  type FavoriteListFilters,
-  type FavoritePage,
-  type FavoriteRepository,
-  type FavoriteSuggestion,
-  type FavoriteSuggestionQuery,
-} from '../../domain/favorites/favorite-repository.ts';
-
-export const FAVORITE_REPOSITORY = Symbol('FAVORITE_REPOSITORY');
+import type {
+  FavoriteListFilters,
+  FavoritePage,
+  FavoriteSuggestion,
+  FavoriteSuggestionQuery,
+} from './favorite-read-model.ts';
 
 export interface CreateFavoriteUseCase {
   execute(input: NewFavorite): Promise<Favorite>;
@@ -51,7 +48,3 @@ export interface DeleteFavoriteInput {
 export interface DeleteFavoriteUseCase {
   execute(input: DeleteFavoriteInput): Promise<void>;
 }
-
-export type FavoriteUseCaseDependencies = {
-  readonly favoriteRepository: FavoriteRepository;
-};

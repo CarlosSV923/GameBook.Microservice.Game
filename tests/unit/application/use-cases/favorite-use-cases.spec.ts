@@ -1,5 +1,6 @@
 import { Favorite } from '../../../../src/domain/favorites/favorite.ts';
 import type { FavoriteRepository } from '../../../../src/domain/favorites/favorite-repository.ts';
+import type { FavoriteReadModel } from '../../../../src/application/ports/favorite-read-model.ts';
 import {
   FavoriteAlreadyExistsError,
   FavoriteNotFoundError,
@@ -29,12 +30,12 @@ describe('favorite use cases', () => {
     await expect(service.execute(favoriteInput)).resolves.toEqual(
       Favorite.create(favoriteInput),
     );
-    expect(repository.save).toHaveBeenCalledWith(expect.any(Favorite));
+    expect(repository.create).toHaveBeenCalledWith(expect.any(Favorite));
   });
 
   it('preserves the duplicate error from the concurrent-safe repository', async () => {
     const repository = createRepository();
-    repository.save.mockRejectedValue(new FavoriteAlreadyExistsError());
+    repository.create.mockRejectedValue(new FavoriteAlreadyExistsError());
     const service = new CreateFavoriteService(repository);
 
     await expect(service.execute(favoriteInput)).rejects.toBeInstanceOf(
@@ -77,15 +78,15 @@ describe('favorite use cases', () => {
   });
 
   it('lists only the authenticated subject with the requested filters', async () => {
-    const repository = createRepository();
-    repository.list.mockResolvedValue({
+    const readModel = createReadModel();
+    readModel.list.mockResolvedValue({
       items: [Favorite.create(favoriteInput)],
       page: 2,
       pageSize: 20,
       total: 21,
       hasNext: false,
     });
-    const service = new ListFavoritesService(repository);
+    const service = new ListFavoritesService(readModel);
 
     await expect(
       service.execute({
@@ -98,7 +99,7 @@ describe('favorite use cases', () => {
         pageSize: 20,
       }),
     ).resolves.toMatchObject({ page: 2, total: 21 });
-    expect(repository.list).toHaveBeenCalledWith(favoriteInput.userId, {
+    expect(readModel.list).toHaveBeenCalledWith(favoriteInput.userId, {
       name: ' grand ',
       platformId: 6,
       yearFrom: 2013,
@@ -109,8 +110,8 @@ describe('favorite use cases', () => {
   });
 
   it('rejects an inverted year range before querying the repository', async () => {
-    const repository = createRepository();
-    const service = new ListFavoritesService(repository);
+    const readModel = createReadModel();
+    const service = new ListFavoritesService(readModel);
 
     await expect(
       service.execute({
@@ -119,15 +120,15 @@ describe('favorite use cases', () => {
         yearTo: 2013,
       }),
     ).rejects.toBeInstanceOf(FavoriteYearRangeInvalidError);
-    expect(repository.list).not.toHaveBeenCalled();
+    expect(readModel.list).not.toHaveBeenCalled();
   });
 
   it('suggests only the authenticated subject with the requested query', async () => {
-    const repository = createRepository();
-    repository.suggest.mockResolvedValue([
+    const readModel = createReadModel();
+    readModel.suggest.mockResolvedValue([
       { type: 'name', value: 'Grand Example' },
     ]);
-    const service = new SuggestFavoritesService(repository);
+    const service = new SuggestFavoritesService(readModel);
 
     await expect(
       service.execute({
@@ -137,7 +138,7 @@ describe('favorite use cases', () => {
         limit: 20,
       }),
     ).resolves.toEqual([{ type: 'name', value: 'Grand Example' }]);
-    expect(repository.suggest).toHaveBeenCalledWith(favoriteInput.userId, {
+    expect(readModel.suggest).toHaveBeenCalledWith(favoriteInput.userId, {
       type: 'name',
       query: 'grand',
       limit: 20,
@@ -146,7 +147,8 @@ describe('favorite use cases', () => {
 
   it('updates only the authenticated subject snapshot', async () => {
     const repository = createRepository();
-    repository.updateSnapshot.mockResolvedValue(Favorite.create(favoriteInput));
+    const favorite = Favorite.create(favoriteInput);
+    repository.findByIdentity.mockResolvedValue(favorite);
     const service = new UpdateFavoriteSnapshotService(repository);
 
     await expect(
@@ -155,17 +157,29 @@ describe('favorite use cases', () => {
         igdbId: favoriteInput.igdbId,
         snapshot: { rating: null, platforms: [] },
       }),
-    ).resolves.toEqual(Favorite.create(favoriteInput));
-    expect(repository.updateSnapshot).toHaveBeenCalledWith(
+    ).resolves.toEqual(favorite);
+    expect(repository.findByIdentity.mock.calls).toContainEqual([
       favoriteInput.userId,
       favoriteInput.igdbId,
-      { rating: null, platforms: [] },
-    );
+    ]);
+    expect(favorite.rating).toBeNull();
+    expect(favorite.platforms).toEqual([]);
+    expect(repository.save).toHaveBeenCalledWith(favorite);
   });
 
-  it('reports a missing own favorite when updating the snapshot', async () => {
+  it("does not update another user's favorite", async () => {
     const repository = createRepository();
-    repository.updateSnapshot.mockResolvedValue(null);
+    const otherUsersFavorite = Favorite.create({
+      ...favoriteInput,
+      userId: '11111111-1111-4111-8111-111111111111',
+    });
+    repository.findByIdentity.mockImplementation(
+      async (userId: string, igdbId: number) =>
+        userId === otherUsersFavorite.userId &&
+        igdbId === otherUsersFavorite.igdbId
+          ? otherUsersFavorite
+          : null,
+    );
     const service = new UpdateFavoriteSnapshotService(repository);
 
     await expect(
@@ -175,28 +189,58 @@ describe('favorite use cases', () => {
         snapshot: { name: 'Updated Game' },
       }),
     ).rejects.toBeInstanceOf(FavoriteNotFoundError);
+    expect(repository.save).not.toHaveBeenCalled();
+    expect(otherUsersFavorite.name).toBe(favoriteInput.name);
+    expect(repository.findByIdentity.mock.calls).toContainEqual([
+      favoriteInput.userId,
+      favoriteInput.igdbId,
+    ]);
+  });
+
+  it('rejects an empty snapshot without saving', async () => {
+    const repository = createRepository();
+    repository.findByIdentity.mockResolvedValue(Favorite.create(favoriteInput));
+    const service = new UpdateFavoriteSnapshotService(repository);
+
+    await expect(
+      service.execute({
+        userId: favoriteInput.userId,
+        igdbId: favoriteInput.igdbId,
+        snapshot: {},
+      }),
+    ).rejects.toMatchObject({ code: 'FAVORITE_SNAPSHOT_EMPTY' });
+    expect(repository.save).not.toHaveBeenCalled();
   });
 });
 
 function createRepository(): FavoriteRepository & {
+  findByIdentity: ReturnType<typeof vi.fn>;
   save: ReturnType<typeof vi.fn>;
+  create: ReturnType<typeof vi.fn>;
   delete: ReturnType<typeof vi.fn>;
-  list: ReturnType<typeof vi.fn>;
-  suggest: ReturnType<typeof vi.fn>;
-  updateSnapshot: ReturnType<typeof vi.fn>;
 } {
   return {
     findByIdentity: vi.fn(),
+    create: vi.fn(),
     save: vi.fn(),
-    list: vi.fn(),
-    suggest: vi.fn(),
-    updateSnapshot: vi.fn(),
     delete: vi.fn(),
   } as unknown as FavoriteRepository & {
+    findByIdentity: ReturnType<typeof vi.fn>;
     save: ReturnType<typeof vi.fn>;
+    create: ReturnType<typeof vi.fn>;
     delete: ReturnType<typeof vi.fn>;
+  };
+}
+
+function createReadModel(): FavoriteReadModel & {
+  list: ReturnType<typeof vi.fn>;
+  suggest: ReturnType<typeof vi.fn>;
+} {
+  return {
+    list: vi.fn(),
+    suggest: vi.fn(),
+  } as unknown as FavoriteReadModel & {
     list: ReturnType<typeof vi.fn>;
     suggest: ReturnType<typeof vi.fn>;
-    updateSnapshot: ReturnType<typeof vi.fn>;
   };
 }

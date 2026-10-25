@@ -1,21 +1,15 @@
-import { Inject, Injectable } from '@nestjs/common';
 import {
-  FAVORITE_REPOSITORY,
   type ListFavoritesInput,
   type ListFavoritesUseCase,
 } from '../ports/favorite-use-cases.ts';
 import { FavoriteYearRangeInvalidError } from '../errors/favorite-errors.ts';
 import type {
+  FavoriteReadModel,
   FavoritePage,
-  FavoriteRepository,
-} from '../../domain/favorites/favorite-repository.ts';
+} from '../ports/favorite-read-model.ts';
 
-@Injectable()
 export class ListFavoritesService implements ListFavoritesUseCase {
-  constructor(
-    @Inject(FAVORITE_REPOSITORY)
-    private readonly favoriteRepository: FavoriteRepository,
-  ) {}
+  constructor(private readonly favoriteReadModel: FavoriteReadModel) {}
 
   async execute(input: ListFavoritesInput): Promise<FavoritePage> {
     if (
@@ -27,6 +21,6 @@ export class ListFavoritesService implements ListFavoritesUseCase {
     }
 
     const { userId, ...filters } = input;
-    return this.favoriteRepository.list(userId, filters);
+    return this.favoriteReadModel.list(userId, filters);
   }
 }

@@ -1,24 +1,11 @@
-import type {
-  FavoriteListFilters,
-  FavoritePage,
-  FavoriteRepository,
-  FavoriteSuggestion,
-  FavoriteSuggestionQuery,
-} from '../../../domain/favorites/favorite-repository.ts';
+import type { FavoriteRepository } from '../../../domain/favorites/favorite-repository.ts';
 import {
   Favorite,
-  type FavoriteSnapshotUpdate,
   type FavoritePersistence,
 } from '../../../domain/favorites/favorite.ts';
 import type { FavoritePlatformPersistence } from '../../../domain/favorites/favorite-platform.ts';
 import { FavoriteAlreadyExistsError } from '../../../application/errors/favorite-errors.ts';
 import type { Prisma, PrismaClient } from './generated/client.ts';
-
-const DEFAULT_PAGE = 1;
-const DEFAULT_PAGE_SIZE = 20;
-const MAX_PAGE_SIZE = 1000;
-const DEFAULT_SUGGESTION_LIMIT = 10;
-const MAX_SUGGESTION_LIMIT = 20;
 
 type FavoriteWithPlatforms = Prisma.FavoriteGetPayload<{
   include: { platforms: true };
@@ -39,7 +26,7 @@ export class PrismaFavoriteRepository implements FavoriteRepository {
     return record ? toDomain(record) : null;
   }
 
-  async save(favorite: Favorite): Promise<void> {
+  async create(favorite: Favorite): Promise<void> {
     const persistence = favorite.toPersistence();
     const platformData = persistence.platforms.map((platform) => ({
       platformId: platform.id,
@@ -67,95 +54,16 @@ export class PrismaFavoriteRepository implements FavoriteRepository {
     }
   }
 
-  async list(
-    userId: string,
-    filters: FavoriteListFilters,
-  ): Promise<FavoritePage> {
-    const page = normalizePositiveInteger(filters.page, DEFAULT_PAGE);
-    const pageSize = Math.min(
-      normalizePositiveInteger(filters.pageSize, DEFAULT_PAGE_SIZE),
-      MAX_PAGE_SIZE,
-    );
-    const where = buildListWhere(userId, filters);
-
-    const [total, records] = await Promise.all([
-      this.prisma.favorite.count({ where }),
-      this.prisma.favorite.findMany({
-        where,
-        include: { platforms: { orderBy: { platformId: 'asc' } } },
-        orderBy: [{ name: 'asc' }, { igdbId: 'asc' }],
-        skip: (page - 1) * pageSize,
-        take: pageSize,
-      }),
-    ]);
-
-    return {
-      items: records.map(toDomain),
-      page,
-      pageSize,
-      total,
-      hasNext: page * pageSize < total,
-    };
-  }
-
-  async suggest(
-    userId: string,
-    query: FavoriteSuggestionQuery,
-  ): Promise<readonly FavoriteSuggestion[]> {
-    const limit = Math.min(
-      normalizePositiveInteger(query.limit, DEFAULT_SUGGESTION_LIMIT),
-      MAX_SUGGESTION_LIMIT,
-    );
-    const name = { contains: query.query.trim(), mode: 'insensitive' as const };
-
-    if (query.type === 'name') {
-      const records = await this.prisma.favorite.findMany({
-        where: { userId, name },
-        orderBy: [{ name: 'asc' }, { igdbId: 'asc' }],
-        distinct: ['name'],
-        take: limit,
-      });
-
-      return records.map((record) => ({
-        type: 'name' as const,
-        value: record.name,
-      }));
-    }
-
-    const records = await this.prisma.favoritePlatform.findMany({
-      where: { userId, name },
-      orderBy: [{ name: 'asc' }, { platformId: 'asc' }],
-      distinct: ['platformId'],
-      take: limit,
-    });
-
-    return records.map((record) => ({
-      type: 'platform' as const,
-      value: record.name,
-      platformId: record.platformId,
-    }));
-  }
-
-  async updateSnapshot(
-    userId: string,
-    igdbId: number,
-    update: FavoriteSnapshotUpdate,
-  ): Promise<Favorite | null> {
-    const record = await this.prisma.favorite.findUnique({
-      where: { userId_igdbId: { userId, igdbId } },
-      include: { platforms: { orderBy: { platformId: 'asc' } } },
-    });
-
-    if (!record) {
-      return null;
-    }
-
-    const favorite = toDomain(record);
-    favorite.updateSnapshot(update);
+  async save(favorite: Favorite): Promise<void> {
     const persistence = favorite.toPersistence();
 
     await this.prisma.favorite.update({
-      where: { userId_igdbId: { userId, igdbId } },
+      where: {
+        userId_igdbId: {
+          userId: persistence.userId,
+          igdbId: persistence.igdbId,
+        },
+      },
       data: {
         name: persistence.name,
         released: persistence.released,
@@ -170,8 +78,6 @@ export class PrismaFavoriteRepository implements FavoriteRepository {
         },
       },
     });
-
-    return favorite;
   }
 
   async delete(userId: string, igdbId: number): Promise<boolean> {
@@ -190,63 +96,6 @@ function isUniqueConstraintViolation(error: unknown): boolean {
     'code' in error &&
     error.code === 'P2002'
   );
-}
-
-function buildListWhere(
-  userId: string,
-  filters: FavoriteListFilters,
-): Prisma.FavoriteWhereInput {
-  const where: Prisma.FavoriteWhereInput = { userId };
-
-  if (filters.name !== undefined) {
-    where.name = {
-      contains: filters.name.trim(),
-      mode: 'insensitive',
-    };
-  }
-
-  if (filters.platformId !== undefined) {
-    where.platforms = { some: { platformId: filters.platformId } };
-  }
-
-  const released = buildReleasedFilter(filters);
-
-  if (released) {
-    where.released = released;
-  }
-
-  return where;
-}
-
-function buildReleasedFilter(
-  filters: FavoriteListFilters,
-): Prisma.DateTimeNullableFilter | undefined {
-  const released: Prisma.DateTimeNullableFilter = {};
-
-  if (filters.yearFrom !== undefined) {
-    released.gte = startOfYearUtc(filters.yearFrom);
-  }
-
-  if (filters.yearTo !== undefined) {
-    released.lt = startOfYearUtc(filters.yearTo + 1);
-  }
-
-  return Object.keys(released).length > 0 ? released : undefined;
-}
-
-function startOfYearUtc(year: number): Date {
-  return new Date(Date.UTC(year, 0, 1));
-}
-
-function normalizePositiveInteger(
-  value: number | undefined,
-  fallback: number,
-): number {
-  if (!Number.isFinite(value) || value === undefined || value < 1) {
-    return fallback;
-  }
-
-  return Math.floor(value);
 }
 
 function toDomain(record: FavoriteWithPlatforms): Favorite {
