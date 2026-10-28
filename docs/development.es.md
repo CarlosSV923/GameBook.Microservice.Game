@@ -47,7 +47,7 @@ Las migraciones Prisma se ejecutan únicamente mediante [`.github/workflows/migr
 
 ## Flujo de release
 
-Los cambios se revisan en `develop` y luego se promueve `develop` a `main`. El workflow release-please se ejecuta al recibir cambios en `main` o manualmente, y crea o actualiza un pull request de release a partir del historial de Conventional Commits. Al fusionar ese pull request de release, se crean la publicación de GitHub y la etiqueta de versión. CI comprueba el commit de release fusionado.
+Los cambios se revisan en `develop` y luego se promueve `develop` a `main`. El workflow release-please se ejecuta al recibir cambios en `main` o manualmente, y crea o actualiza un pull request de release a partir del historial de Conventional Commits. Al fusionar ese pull request de release, se crean la publicación de GitHub y la etiqueta de versión. CI comprueba el commit de release fusionado. Los pull requests de funcionalidad hacia `develop` se fusionan con "Rebase and merge" para que release-please incluya cada cambio una sola vez. Los pull requests de promoción (`develop → main`) y sincronización (`main → develop`) usan un merge commit.
 
 ## Despliegue y contenedores
 
