@@ -111,7 +111,7 @@ El despliegue de producción se gestiona mediante Render. El repositorio no cont
 
 El diagrama de arquitectura del repositorio está disponible en inglés y español. La vista previa embebida usa el tema oscuro validado; el diagrama interactivo se publica mediante GitHub Pages.
 
-[![Arquitectura de GameBook.Microservice.Game — español](architecture/GameBook.Microservice.Game-architecture-es-dark.png)](https://carlossv923.github.io/GameBook.Microservice.Game/GameBook.Microservice.Game-architecture-es.html)
+[![Arquitectura de GameBook.Microservice.Game — español](architecture/GameBook.Microservice.Game-architecture-es.svg)](https://carlossv923.github.io/GameBook.Microservice.Game/GameBook.Microservice.Game-architecture-es.html)
 
 - [Abrir el diagrama interactivo](https://carlossv923.github.io/GameBook.Microservice.Game/GameBook.Microservice.Game-architecture-es.html)
 
