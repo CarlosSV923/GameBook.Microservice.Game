@@ -47,7 +47,7 @@ Prisma migrations run only through [`.github/workflows/migrate-game.yml`](../.gi
 
 ## Release flow
 
-Changes are reviewed into `develop`, then `develop` is promoted to `main`. The release-please workflow runs on `main` pushes or manual dispatch and opens or updates a release pull request from Conventional Commit history. Merging that release pull request creates the GitHub release and version tag. CI checks the merged release commit.
+Changes are reviewed into `develop`, then `develop` is promoted to `main`. The release-please workflow runs on `main` pushes or manual dispatch and opens or updates a release pull request from Conventional Commit history. Merging that release pull request creates the GitHub release and version tag. CI checks the merged release commit. After each release, the workflow opens a `main → develop` sync pull request. Merge it with a merge commit.
 
 ## Deployment and containers
 
