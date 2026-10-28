@@ -2,170 +2,433 @@
   "schema_version": 1,
   "diagram_type": "architecture",
   "meta": {
-    "title": "Arquitectura de GameBook Game",
-    "output": "GameBook.Microservice.Game-architecture-es.html",
+    "locale": "es",
+    "title": "Arquitectura del servicio de favoritos",
+    "output": "architecture/GameBook.Microservice.Game-architecture-es.html",
     "quality_profile": "showcase",
     "repository": {
-      "url": "https://github.com/CarlosSV923/GameBook.Microservice.Game",
+      "url": "https://github.com/CarlosSV923/GameBook.Microservice.Game.git",
       "provider": "github",
       "link_mode": "web",
-      "revision": "c0ce96a7be59c5cec37607754eae3552f77c8ce7"
-    },
-    "views": [
-      {
-        "id": "favorite-path",
-        "label": "Ruta de favoritos",
-        "focus": ["frontend", "api", "application", "domain", "prisma", "postgres"],
-        "note": "Sigue la creación, listado, sugerencias, snapshots y eliminación de favoritos hasta la persistencia."
-      },
-      {
-        "id": "session-security",
-        "label": "Seguridad de sesión",
-        "focus": ["api", "jwt", "authuser", "application", "config"],
-        "note": "Observa la verificación local del JWT y la validación de sesión contra AuthUser antes de las operaciones protegidas."
-      },
-      {
-        "id": "operations",
-        "label": "Operación y documentación",
-        "focus": ["frontend", "api", "health", "openapi", "config"],
-        "note": "Inspecciona los puntos de healthcheck y OpenAPI expuestos por el servicio."
-      }
-    ]
+      "revision": "fb30d97282b0ccf54053d341d1801be759d80c88"
+    }
   },
   "components": [
     {
-      "id": "frontend",
+      "id": "client",
       "type": "external",
-      "label": "GameBook Frontend",
-      "sublabel": "Cliente Next.js",
-      "pos": [40, 300],
-      "size": [170, 72],
-      "sources": [{ "path": "README.es.md", "label": "consumidor" }]
+      "label": "Cliente de la API",
+      "sublabel": "Navegador o servicio consumidor",
+      "sources": [
+        {
+          "path": "src/api/favorites/favorites.controller.ts",
+          "line": 66,
+          "end_line": 70,
+          "label": "API protegida"
+        }
+      ],
+      "pos": [
+        30,
+        300
+      ],
+      "size": [
+        145,
+        74
+      ]
     },
     {
-      "id": "api",
+      "id": "game-api",
       "type": "backend",
       "label": "API Game",
-      "sublabel": "Frontera HTTP NestJS",
-      "tag": "/v1/favorites",
-      "pos": [250, 300],
-      "size": [170, 82],
-      "sources": [{ "path": "src/api/api.module.ts", "label": "rutas" }]
+      "sublabel": "NestJS · /v1/favorites · Swagger",
+      "sources": [
+        {
+          "path": "src/api/favorites/favorites.controller.ts",
+          "line": 66,
+          "end_line": 82,
+          "label": "Rutas y puertos de casos de uso"
+        },
+        {
+          "path": "src/api/favorites/favorites.swagger.ts",
+          "line": 139,
+          "end_line": 152,
+          "label": "Decoradores compuestos de creación"
+        },
+        {
+          "path": "src/main.ts",
+          "line": 6,
+          "end_line": 11,
+          "label": "Arranque HTTP"
+        }
+      ],
+      "pos": [
+        215,
+        300
+      ],
+      "size": [
+        165,
+        74
+      ]
     },
     {
-      "id": "application",
-      "type": "backend",
-      "label": "Casos de uso de favoritos",
-      "sublabel": "Crear · Listar · Eliminar",
-      "tag": "Sugerir + snapshot",
-      "pos": [460, 300],
-      "size": [190, 82],
-      "sources": [{ "path": "src/application/use-cases/list-favorites.ts", "label": "orquestación" }]
-    },
-    {
-      "id": "domain",
-      "type": "backend",
-      "label": "Dominio de favoritos",
-      "sublabel": "Juego · plataforma · snapshot",
-      "pos": [690, 300],
-      "size": [170, 82],
-      "sources": [{ "path": "src/domain/favorites/favorite.ts", "label": "invariantes" }]
-    },
-    {
-      "id": "prisma",
-      "type": "backend",
-      "label": "Repositorio Prisma",
-      "sublabel": "Adaptador de persistencia",
-      "tag": "esquema game",
-      "pos": [910, 300],
-      "size": [180, 82],
-      "sources": [{ "path": "src/infrastructure/persistence/prisma/prisma-favorite-repository.ts", "label": "adaptador" }]
-    },
-    {
-      "id": "postgres",
-      "type": "database",
-      "label": "PostgreSQL",
-      "sublabel": "Neon · esquema game",
-      "pos": [1130, 300],
-      "size": [170, 82],
-      "sources": [{ "path": "src/infrastructure/persistence/prisma/schema.prisma", "label": "persistencia" }]
-    },
-    {
-      "id": "jwt",
+      "id": "auth-guard",
       "type": "security",
-      "label": "Guard JWT",
-      "sublabel": "Verificación RS256",
-      "pos": [460, 120],
-      "size": [190, 76],
-      "sources": [{ "path": "src/api/auth/jwt-auth-guard.ts", "label": "seguridad" }]
+      "label": "Guard de sesión JWT",
+      "sublabel": "RS256 local · validar sesión",
+      "sources": [
+        {
+          "path": "src/api/auth/jwt-auth-guard.ts",
+          "line": 42,
+          "end_line": 89,
+          "label": "Verifica, valida y falla de forma segura"
+        },
+        {
+          "path": "src/infrastructure/cryptography/rsa-jwt.ts",
+          "line": 15,
+          "end_line": 88,
+          "label": "RS256 y claims"
+        },
+        {
+          "path": "src/infrastructure/infrastructure.module.ts",
+          "line": 35,
+          "end_line": 53,
+          "label": "Conexión de verificador y cliente de sesión"
+        }
+      ],
+      "pos": [
+        425,
+        300
+      ],
+      "size": [
+        180,
+        74
+      ]
     },
     {
-      "id": "authuser",
+      "id": "auth-user",
       "type": "external",
       "label": "AuthUser",
-      "sublabel": "Validación de sesión",
-      "tag": "GET /v1/auth/session",
-      "pos": [690, 120],
-      "size": [190, 76],
-      "sources": [{ "path": "src/infrastructure/auth/auth-user-session-client.ts", "label": "integración" }]
+      "sublabel": "GET /v1/auth/session",
+      "sources": [
+        {
+          "path": "src/infrastructure/auth/auth-user-session-client.ts",
+          "line": 11,
+          "end_line": 64,
+          "label": "Cliente del endpoint de sesión"
+        },
+        {
+          "path": "README.md",
+          "line": 64,
+          "end_line": 79,
+          "label": "Dependencia en producción"
+        }
+      ],
+      "pos": [
+        655,
+        120
+      ],
+      "size": [
+        160,
+        74
+      ]
     },
     {
-      "id": "config",
-      "type": "security",
-      "label": "Configuración de ejecución",
-      "sublabel": "Validación de entorno",
-      "tag": "claves · orígenes · base de datos",
-      "pos": [910, 120],
-      "size": [180, 76],
-      "sources": [{ "path": "src/infrastructure/config/game-runtime-config.ts", "label": "configuración" }]
-    },
-    {
-      "id": "health",
+      "id": "favorite-use-cases",
       "type": "backend",
-      "label": "Healthcheck",
-      "sublabel": "GET /health → 200",
-      "pos": [250, 510],
-      "size": [170, 72],
-      "sources": [{ "path": "src/api/health/health.controller.ts", "label": "operación" }]
+      "label": "Casos de uso de favoritos",
+      "sublabel": "Sin framework · factorías",
+      "sources": [
+        {
+          "path": "src/application.module.ts",
+          "line": 20,
+          "end_line": 52,
+          "label": "Factorías y tokens de puertos"
+        },
+        {
+          "path": "src/application/use-cases/create-favorite.ts",
+          "line": 5,
+          "end_line": 12,
+          "label": "Flujo de creación"
+        },
+        {
+          "path": "src/application/use-cases/list-favorites.ts",
+          "line": 11,
+          "end_line": 25,
+          "label": "Flujo de lectura"
+        }
+      ],
+      "pos": [
+        215,
+        500
+      ],
+      "size": [
+        180,
+        74
+      ]
     },
     {
-      "id": "openapi",
+      "id": "favorite-aggregate",
       "type": "backend",
-      "label": "OpenAPI / Swagger",
-      "sublabel": "GET /docs · /docs/openapi.json",
-      "pos": [460, 510],
-      "size": [210, 72],
-      "sources": [{ "path": "src/api/openapi/configure-swagger.ts", "label": "documentación" }]
+      "label": "Agregado Favorite",
+      "sublabel": "Snapshot validado y mutaciones",
+      "sources": [
+        {
+          "path": "src/domain/favorites/favorite.ts",
+          "line": 43,
+          "end_line": 61,
+          "label": "Creación del agregado"
+        },
+        {
+          "path": "src/domain/favorites/favorite.ts",
+          "line": 92,
+          "end_line": 114,
+          "label": "Mutación del snapshot"
+        },
+        {
+          "path": "src/domain/favorites/favorite-repository.ts",
+          "line": 3,
+          "end_line": 8,
+          "label": "Puerto del repositorio de escritura"
+        }
+      ],
+      "pos": [
+        425,
+        500
+      ],
+      "size": [
+        180,
+        74
+      ]
+    },
+    {
+      "id": "favorite-write-repository",
+      "type": "backend",
+      "label": "Repositorio de escritura Prisma",
+      "sublabel": "Create · save · delete",
+      "sources": [
+        {
+          "path": "src/infrastructure/persistence/prisma/prisma-favorite-repository.ts",
+          "line": 14,
+          "end_line": 55,
+          "label": "Persistencia de creación"
+        },
+        {
+          "path": "src/infrastructure/persistence/prisma/prisma-favorite-repository.ts",
+          "line": 57,
+          "end_line": 89,
+          "label": "Save y delete"
+        }
+      ],
+      "pos": [
+        635,
+        500
+      ],
+      "size": [
+        205,
+        74
+      ]
+    },
+    {
+      "id": "favorite-read-model",
+      "type": "backend",
+      "label": "Modelo de lectura Prisma",
+      "sublabel": "Listas filtradas y sugerencias",
+      "sources": [
+        {
+          "path": "src/infrastructure/persistence/prisma/prisma-favorite-read-model.ts",
+          "line": 25,
+          "end_line": 57,
+          "label": "Consulta de lista"
+        },
+        {
+          "path": "src/infrastructure/persistence/prisma/prisma-favorite-read-model.ts",
+          "line": 59,
+          "end_line": 95,
+          "label": "Consultas de sugerencias"
+        },
+        {
+          "path": "src/infrastructure/infrastructure.module.ts",
+          "line": 55,
+          "end_line": 64,
+          "label": "Conexión de adaptadores de lectura y escritura"
+        }
+      ],
+      "pos": [
+        425,
+        675
+      ],
+      "size": [
+        180,
+        74
+      ]
+    },
+    {
+      "id": "game-database",
+      "type": "database",
+      "label": "Neon PostgreSQL",
+      "sublabel": "esquema game · rol runtime",
+      "sources": [
+        {
+          "path": "src/infrastructure/persistence/prisma/schema.prisma",
+          "line": 7,
+          "end_line": 10,
+          "label": "Esquema PostgreSQL game"
+        },
+        {
+          "path": "src/infrastructure/persistence/prisma/schema.prisma",
+          "line": 12,
+          "end_line": 36,
+          "label": "Tablas Favorite en game"
+        },
+        {
+          "path": "src/infrastructure/infrastructure.module.ts",
+          "line": 29,
+          "end_line": 33,
+          "label": "Conexión de runtime"
+        }
+      ],
+      "pos": [
+        880,
+        500
+      ],
+      "size": [
+        170,
+        74
+      ]
+    },
+    {
+      "id": "migration-actions",
+      "type": "cloud",
+      "label": "GitHub Actions",
+      "sublabel": "Migraciones Prisma controladas",
+      "sources": [
+        {
+          "path": ".github/workflows/migrate-game.yml",
+          "line": 1,
+          "end_line": 15,
+          "label": "Disparadores del flujo de migración"
+        },
+        {
+          "path": ".github/workflows/migrate-game.yml",
+          "line": 53,
+          "end_line": 76,
+          "label": "Validación de credenciales y esquema"
+        },
+        {
+          "path": ".github/workflows/migrate-game.yml",
+          "line": 126,
+          "end_line": 130,
+          "label": "Aplicación de migraciones en Actions"
+        }
+      ],
+      "pos": [
+        880,
+        220
+      ],
+      "size": [
+        170,
+        74
+      ]
     }
   ],
   "boundaries": [
     {
       "kind": "region",
-      "label": "Servicio GameBook.Game",
-      "wraps": ["api", "application", "domain", "prisma", "jwt", "config", "health", "openapi"],
-      "pad": 28
-    },
-    {
-      "kind": "security-group",
-      "label": "Operaciones de favoritos protegidas",
-      "wraps": ["api", "application", "jwt"],
-      "pad": 18
+      "label": "Servicio web en Render",
+      "wraps": [
+        "game-api",
+        "auth-guard",
+        "favorite-use-cases",
+        "favorite-aggregate",
+        "favorite-write-repository",
+        "favorite-read-model"
+      ]
     }
   ],
   "connections": [
-    { "id": "frontend-api", "from": "frontend", "to": "api", "label": "HTTP + Bearer JWT", "variant": "emphasis", "labelDy": -30 },
-    { "id": "api-application", "from": "api", "to": "application", "label": "comandos validados", "labelDy": -35 },
-    { "id": "application-domain", "from": "application", "to": "domain", "label": "aplicar reglas de favoritos", "labelDy": -35 },
-    { "id": "domain-prisma", "from": "domain", "to": "prisma", "label": "puerto de repositorio", "variant": "dashed", "labelDy": -35 },
-    { "id": "prisma-postgres", "from": "prisma", "to": "postgres", "label": "SQL · esquema game", "labelDy": -35 },
-    { "id": "api-jwt", "from": "api", "to": "jwt", "label": "verificar RS256", "variant": "security", "fromSide": "top", "toSide": "bottom", "labelDy": 26 },
-    { "id": "api-authuser", "from": "api", "to": "authuser", "label": "validar sesión", "variant": "security", "fromSide": "top", "toSide": "bottom", "labelDy": 26 },
-    { "id": "api-health", "from": "api", "to": "health", "variant": "dashed", "fromSide": "bottom", "toSide": "top" },
-    { "id": "api-openapi", "from": "api", "to": "openapi", "label": "contrato de API", "variant": "dashed", "fromSide": "bottom", "toSide": "top", "labelDy": 54 }
+    {
+      "id": "client-to-game",
+      "from": "client",
+      "to": "game-api",
+      "label": "HTTPS · Bearer JWT",
+      "variant": "emphasis"
+    },
+    {
+      "id": "game-to-guard",
+      "from": "game-api",
+      "to": "auth-guard",
+      "label": "Rutas de favoritos protegidas",
+      "variant": "security"
+    },
+    {
+      "id": "guard-to-auth-user",
+      "from": "auth-guard",
+      "to": "auth-user",
+      "label": "GET session · reenvía Bearer token",
+      "variant": "security"
+    },
+    {
+      "id": "game-to-use-cases",
+      "from": "game-api",
+      "to": "favorite-use-cases",
+      "label": "Pasa sub validado como userId"
+    },
+    {
+      "id": "use-cases-to-aggregate",
+      "from": "favorite-use-cases",
+      "to": "favorite-aggregate",
+      "label": "Crea o modifica Favorite"
+    },
+    {
+      "id": "aggregate-to-write-repository",
+      "from": "favorite-aggregate",
+      "to": "favorite-write-repository",
+      "label": "create · save · delete"
+    },
+    {
+      "id": "use-cases-to-read-model",
+      "from": "favorite-use-cases",
+      "to": "favorite-read-model",
+      "label": "Lista · sugiere"
+    },
+    {
+      "id": "write-repository-to-database",
+      "from": "favorite-write-repository",
+      "to": "game-database",
+      "label": "Escrituras Prisma · limitadas por usuario"
+    },
+    {
+      "id": "read-model-to-database",
+      "from": "favorite-read-model",
+      "to": "game-database",
+      "label": "Consultas Prisma · limitadas por usuario"
+    },
+    {
+      "id": "actions-to-database",
+      "from": "migration-actions",
+      "to": "game-database",
+      "label": "Aplica migraciones · esquema game",
+      "variant": "dashed"
+    }
   ],
   "cards": [
-    { "dot": "cyan", "title": "Ruta de favoritos", "items": ["NestJS transforma solicitudes HTTP en casos de uso de favoritos", "Las reglas de dominio normalizan juego, plataforma y snapshot", "Prisma persiste favoritos en el esquema game aislado"] },
-    { "dot": "rose", "title": "Seguridad de sesión", "items": ["El guard verifica el JWT de AuthUser con RS256", "Las operaciones protegidas validan la sesión actual con AuthUser", "Las claves y la base de datos permanecen en configuración validada"] },
-    { "dot": "emerald", "title": "Operación", "items": ["GET /health devuelve HTTP 200 para healthchecks", "Swagger UI y OpenAPI JSON describen el contrato del servicio"] }
+    {
+      "dot": "rose",
+      "title": "Límite de confianza",
+      "items": [
+        "Game verifica RS256 localmente y luego solicita a AuthUser validar la sesión vigente.",
+        "Si AuthUser no está disponible, la solicitud falla de forma segura con HTTP 503.",
+        "El subject del JWT autenticado delimita todas las operaciones de favoritos."
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Persistencia y despliegue",
+      "items": [
+        "El acceso Prisma de runtime usa el esquema game y el rol de base de datos de runtime.",
+        "Las migraciones de Game desplegadas se ejecutan en GitHub Actions controlado; sus credenciales no se configuran en Render.",
+        "Los metadatos de Swagger se componen con decoradores reutilizables por endpoint."
+      ]
+    }
   ]
 }
